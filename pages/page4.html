@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>page4 - 삼각함수 간의 관계</title>
+  <style>
+    :root {
+      --card: #ffffff;
+      --line: #dbe4f0;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --soft: #eff6ff;
+      --soft2: #f5f3ff;
+      --warn: #dc2626;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      background: #ffffff;
+      color: var(--text);
+    }
+
+    .inner {
+      padding: 18px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--soft), var(--soft2));
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .hero p {
+      margin: 4px 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    .subtext {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 90px;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 15px;
+      background: white;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .value-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 80px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .small-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .small-buttons button {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .small-buttons button:hover {
+      background: #f8fafc;
+    }
+
+    .canvas-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid #e7eef7;
+      background: white;
+    }
+
+    .canvas-wrap.identity {
+      aspect-ratio: 10 / 7;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .info-item {
+      border: 1px solid #e7eef7;
+      border-radius: 16px;
+      padding: 12px;
+      background: #fcfdff;
+    }
+
+    .info-item .k {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .info-item .v {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    .formula-box {
+      margin-top: 14px;
+      border-radius: 16px;
+      padding: 14px;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      font-size: 15px;
+    }
+
+    .formula-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #3730a3;
+      margin-bottom: 12px;
+    }
+
+    .formula-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+      line-height: 1.8;
+    }
+
+    .fn-name {
+      min-width: 72px;
+      font-weight: 700;
+    }
+
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      line-height: 1.2;
+      vertical-align: middle;
+    }
+
+    .frac .top {
+      display: block;
+      padding: 0 6px 2px 6px;
+      border-bottom: 1.8px solid #334155;
+      text-align: center;
+      min-width: 100%;
+    }
+
+    .frac .bottom {
+      display: block;
+      padding: 2px 6px 0 6px;
+      text-align: center;
+      min-width: 100%;
+    }
+
+    .eq-value {
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .undefined {
+      color: #b91c1c;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .control-row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .info-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="inner">
+    <section class="hero">
+      <h1>4. 삼각함수 간의 관계</h1>
+      <p>단위원 위의 점 <strong>P(x, y)</strong>를 이용하여 <strong>x = cos θ</strong>, <strong>y = sin θ</strong>를 확인하고, 이를 바탕으로 <strong>tan θ = sin θ / cos θ</strong>를 이해할 수 있습니다.</p>
+      <p>또한 단위원 위의 점이라는 사실로부터 <strong>x² + y² = 1</strong>, 즉 <strong>sin²θ + cos²θ = 1</strong>임을 시각적으로 확인할 수 있습니다.</p>
+    </section>
+
+    <section class="layout">
+      <section class="card">
+        <h2>단위원과 점 P</h2>
+        <div class="subtext">각도를 입력하거나 슬라이더로 조절할 수 있습니다. 원 위의 점 P를 마우스로 끌어도 각도가 바뀝니다.</div>
+
+        <div class="control-row">
+          <input id="angleInput" type="number" value="45" step="1" />
+          <input id="angleSlider" type="range" min="-180" max="180" step="1" value="45" />
+          <span class="value-chip" id="angleChip">45°</span>
+        </div>
+
+        <div class="small-buttons">
+          <button data-angle="30">30°</button>
+          <button data-angle="45">45°</button>
+          <button data-angle="60">60°</button>
+          <button data-angle="120">120°</button>
+          <button data-angle="225">225°</button>
+          <button data-angle="330">330°</button>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="mainCanvas" width="700" height="700"></canvas>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="k">각도</div>
+            <div class="v" id="thetaText">45°</div>
+          </div>
+          <div class="info-item">
+            <div class="k">점 P의 좌표</div>
+            <div class="v" id="pointText">P(0.707, 0.707)</div>
+          </div>
+          <div class="info-item">
+            <div class="k">cos θ</div>
+            <div class="v" id="cosText">0.707</div>
+          </div>
+          <div class="info-item">
+            <div class="k">sin θ</div>
+            <div class="v" id="sinText">0.707</div>
+          </div>
+        </div>
+
+        <div class="formula-box">
+          <div class="formula-title">tan θ 와 sin, cos 의 관계</div>
+
+          <div class="formula-line">
+            <span class="fn-name">tan θ</span>
+            <span>=</span>
+            <span class="frac">
+              <span class="top">sin θ</span>
+              <span class="bottom">cos θ</span>
+            </span>
+            <span>=</span>
+            <span class="frac">
+              <span class="top" id="tanTopSin">0</span>
+              <span class="bottom" id="tanBottomCos">0</span>
+            </span>
+            <span>=</span>
+            <span class="eq-value" id="tanFromSinCos">0</span>
+          </div>
+
+          <div class="formula-line">
+            <span class="fn-name">tan θ</span>
+            <span>=</span>
+            <span class="frac">
+              <span class="top">y</span>
+              <span class="bottom">x</span>
+            </span>
+            <span>=</span>
+            <span class="frac">
+              <span class="top" id="tanTopY">0</span>
+              <span class="bottom" id="tanBottomX">0</span>
+            </span>
+            <span>=</span>
+            <span class="eq-value" id="tanFromYX">0</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>x² + y² = 1 과 sin²θ + cos²θ = 1</h2>
+        <div class="subtext">점 P가 단위원 위에 있으므로 OP = 1 입니다. 따라서 직각삼각형에 피타고라스 정리를 적용하면 x² + y² = 1 이고, 이를 삼각함수로 바꾸면 sin²θ + cos²θ = 1 입니다.</div>
+
+        <div class="canvas-wrap identity">
+          <canvas id="identityCanvas" width="1000" height="700"></canvas>
+        </div>
+
+        <div class="formula-box">
+          <div class="formula-title">기본 관계식</div>
+
+          <div class="formula-line">
+            <span class="fn-name">x² + y²</span>
+            <span>=</span>
+            <span class="eq-value" id="identityXY">1</span>
+          </div>
+
+          <div class="formula-line">
+            <span class="fn-name">cos²θ + sin²θ</span>
+            <span>=</span>
+            <span class="eq-value" id="identityTrig">1</span>
+          </div>
+
+          <div class="formula-line">
+            <span>따라서</span>
+            <span class="eq-value">sin²θ + cos²θ = 1</span>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      angleDeg: 45,
+      dragging: false
+    };
+
+    const angleInput = document.getElementById('angleInput');
+    const angleSlider = document.getElementById('angleSlider');
+    const angleChip = document.getElementById('angleChip');
+
+    const thetaText = document.getElementById('thetaText');
+    const pointText = document.getElementById('pointText');
+    const cosText = document.getElementById('cosText');
+    const sinText = document.getElementById('sinText');
+
+    const tanTopSin = document.getElementById('tanTopSin');
+    const tanBottomCos = document.getElementById('tanBottomCos');
+    const tanFromSinCos = document.getElementById('tanFromSinCos');
+
+    const tanTopY = document.getElementById('tanTopY');
+    const tanBottomX = document.getElementById('tanBottomX');
+    const tanFromYX = document.getElementById('tanFromYX');
+
+    const identityXY = document.getElementById('identityXY');
+    const identityTrig = document.getElementById('identityTrig');
+
+    const mainCanvas = document.getElementById('mainCanvas');
+    const identityCanvas = document.getElementById('identityCanvas');
+
+    function normalizeDeg(deg) {
+      return ((deg % 360) + 360) % 360;
+    }
+
+    function toRad(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    function round3(n) {
+      return Math.round(n * 1000) / 1000;
+    }
+
+    function formatNum(n) {
+      if (!Number.isFinite(n)) return '정의되지 않음';
+      const v = round3(n);
+      return Number.isInteger(v) ? String(v) : v.toString();
+    }
+
+    function sliderAngleFromDeg(deg) {
+      let a = ((deg + 180) % 360 + 360) % 360 - 180;
+      if (a === -180 && normalizeDeg(deg) === 180) a = 180;
+      return a;
+    }
+
+    function getValues() {
+      const theta = toRad(state.angleDeg);
+      const x = Math.cos(theta);
+      const y = Math.sin(theta);
+      const tan = Math.abs(x) < 1e-10 ? null : y / x;
+      return { theta, x, y, tan };
+    }
+
+    function updateOutputs() {
+      const { x, y, tan } = getValues();
+
+      angleInput.value = state.angleDeg;
+      angleSlider.value = sliderAngleFromDeg(state.angleDeg);
+      angleChip.textContent = state.angleDeg + '°';
+
+      thetaText.textContent = state.angleDeg + '°';
+      pointText.textContent = `P(${formatNum(x)}, ${formatNum(y)})`;
+      cosText.textContent = formatNum(x);
+      sinText.textContent = formatNum(y);
+
+      tanTopSin.textContent = formatNum(y);
+      tanBottomCos.textContent = Math.abs(x) < 1e-10 ? '0' : formatNum(x);
+      tanTopY.textContent = formatNum(y);
+      tanBottomX.textContent = Math.abs(x) < 1e-10 ? '0' : formatNum(x);
+
+      if (tan === null) {
+        tanFromSinCos.textContent = '정의되지 않음';
+        tanFromSinCos.className = 'eq-value undefined';
+        tanFromYX.textContent = '정의되지 않음';
+        tanFromYX.className = 'eq-value undefined';
+      } else {
+        tanFromSinCos.textContent = formatNum(tan);
+        tanFromSinCos.className = 'eq-value';
+        tanFromYX.textContent = formatNum(tan);
+        tanFromYX.className = 'eq-value';
+      }
+
+      identityXY.textContent = `${formatNum(x)}² + ${formatNum(y)}² = ${formatNum(x * x + y * y)}`;
+      identityTrig.textContent = `${formatNum(x)}² + ${formatNum(y)}² = ${formatNum(x * x + y * y)}`;
+    }
+
+    function drawArrowHead(ctx, x1, y1, x2, y2, size = 10) {
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - size * Math.cos(angle - Math.PI / 6), y2 - size * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - size * Math.cos(angle + Math.PI / 6), y2 - size * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawMainCanvas() {
+      const ctx = mainCanvas.getContext('2d');
+      const w = mainCanvas.width;
+      const h = mainCanvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const pixelR = 220;
+
+      const { theta, x, y } = getValues();
+      const px = cx + pixelR * Math.cos(-theta);
+      const py = cy + pixelR * Math.sin(-theta);
+
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 280, cy);
+      ctx.lineTo(cx + 280, cy);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + 280);
+      ctx.lineTo(cx, cy - 280);
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      drawArrowHead(ctx, cx + 260, cy, cx + 280, cy, 10);
+      drawArrowHead(ctx, cx, cy - 260, cx, cy - 280, 10);
+
+      ctx.font = 'bold 18px Malgun Gothic';
+      ctx.fillText('x', cx + 292, cy + 6);
+      ctx.fillText('y', cx - 14, cy - 292);
+      ctx.fillText('O', cx - 24, cy + 24);
+
+      ctx.fillText('1', cx + pixelR + 16, cy - 10);
+      ctx.fillText('-1', cx - pixelR - 40, cy - 10);
+      ctx.fillText('1', cx + 12, cy - pixelR - 14);
+      ctx.fillText('-1', cx + 10, cy + pixelR + 26);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, pixelR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + pixelR, cy);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#7c3aed';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+
+      ctx.fillStyle = '#7c3aed';
+      drawArrowHead(
+        ctx,
+        cx + (pixelR - 20) * Math.cos(-theta),
+        cy + (pixelR - 20) * Math.sin(-theta),
+        px,
+        py,
+        12
+      );
+
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.arc(px, py, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 5]);
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px, cy);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(cx, py);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 52, 0, -theta, true);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 18px Malgun Gothic';
+      ctx.fillText('P', px + 12, py - 8);
+      ctx.fillText('θ', cx + 38, cy - 18);
+
+      ctx.font = 'italic 18px Georgia';
+      ctx.fillText('1', cx + pixelR * 0.48 * Math.cos(-theta) + 8, cy + pixelR * 0.48 * Math.sin(-theta) - 8);
+
+      ctx.font = '16px Malgun Gothic';
+      ctx.fillStyle = '#334155';
+      ctx.fillText(`x = cos θ = ${formatNum(x)}`, px - 20, cy + 24);
+      ctx.fillText(`y = sin θ = ${formatNum(y)}`, cx + 12, py - 8);
+    }
+
+    function drawIdentityCanvas() {
+      const ctx = identityCanvas.getContext('2d');
+      const w = identityCanvas.width;
+      const h = identityCanvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const cx = 260;
+      const cy = 360;
+      const pixelR = Math.min(180, cx - 50, cy - 50, w - cx - 50, h - cy - 50);
+
+      const { theta, x, y } = getValues();
+      const px = cx + pixelR * Math.cos(-theta);
+      const py = cy + pixelR * Math.sin(-theta);
+
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 220, cy);
+      ctx.lineTo(cx + 220, cy);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + 210);
+      ctx.lineTo(cx, cy - 210);
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      drawArrowHead(ctx, cx + 200, cy, cx + 220, cy, 10);
+      drawArrowHead(ctx, cx, cy - 190, cx, cy - 210, 10);
+
+      ctx.font = 'bold 18px Malgun Gothic';
+      ctx.fillText('x', cx + 232, cy + 6);
+      ctx.fillText('y', cx - 14, cy - 222);
+      ctx.fillText('O', cx - 24, cy + 24);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, pixelR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#7c3aed';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px, py);
+      ctx.lineTo(px, cy);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+      const signX = px >= cx ? -1 : 1;
+      const signY = py >= cy ? 1 : -1;
+      ctx.beginPath();
+      ctx.moveTo(px + signX * 18, cy);
+      ctx.lineTo(px + signX * 18, cy + signY * 18);
+      ctx.lineTo(px, cy + signY * 18);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 18px Malgun Gothic';
+      ctx.fillText('P', px + 10, py - 8);
+
+      ctx.font = 'italic 18px Georgia';
+      ctx.fillText('1', cx + pixelR * 0.48 * Math.cos(-theta) + 8, cy + pixelR * 0.48 * Math.sin(-theta) - 8);
+
+      ctx.font = '16px Malgun Gothic';
+      ctx.fillStyle = '#334155';
+      ctx.fillText('x', cx + (px - cx) / 2 - 4, cy + 24);
+      ctx.fillText('y', px + 10, cy + (py - cy) / 2);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 18px Malgun Gothic';
+      ctx.fillText('단위원 위의 점이므로 OP = 1', 560, 120);
+      ctx.font = '16px Malgun Gothic';
+      ctx.fillText('직각삼각형에 피타고라스 정리를 적용하면', 560, 168);
+      ctx.fillText('x² + y² = 1² = 1', 560, 208);
+      ctx.fillText('x = cos θ, y = sin θ 이므로', 560, 248);
+      ctx.fillText('cos²θ + sin²θ = 1', 560, 288);
+    }
+
+    function getCanvasCoords(event, canvas) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (event.clientX - rect.left) * (canvas.width / rect.width),
+        y: (event.clientY - rect.top) * (canvas.height / rect.height)
+      };
+    }
+
+    function updateFromPointer(event) {
+      const cx = mainCanvas.width / 2;
+      const cy = mainCanvas.height / 2;
+      const pos = getCanvasCoords(event, mainCanvas);
+      const dx = pos.x - cx;
+      const dy = cy - pos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 20) return;
+
+      let deg = Math.atan2(dy, dx) * 180 / Math.PI;
+      if (deg < 0) deg += 360;
+      state.angleDeg = Math.round(deg);
+      renderPage4();
+    }
+
+    function notifyParent() {
+      const inner = document.querySelector('.inner');
+      if (!inner) return;
+      const height = Math.max(760, Math.ceil(inner.getBoundingClientRect().height) + 24);
+      window.parent.postMessage({
+        type: 'setHeight',
+        height,
+        page: 'page4'
+      }, '*');
+    }
+
+    function renderPage4() {
+      updateOutputs();
+      drawMainCanvas();
+      drawIdentityCanvas();
+      requestAnimationFrame(notifyParent);
+    }
+
+    angleInput.addEventListener('input', (e) => {
+      const raw = e.target.value;
+      state.angleDeg = (raw === '' || raw === '-') ? 0 : Number(raw);
+      renderPage4();
+    });
+
+    angleSlider.addEventListener('input', (e) => {
+      state.angleDeg = Number(e.target.value);
+      renderPage4();
+    });
+
+    document.querySelectorAll('[data-angle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.angleDeg = Number(btn.dataset.angle);
+        renderPage4();
+      });
+    });
+
+    mainCanvas.addEventListener('mousedown', (event) => {
+      state.dragging = true;
+      updateFromPointer(event);
+    });
+
+    window.addEventListener('mousemove', (event) => {
+      if (!state.dragging) return;
+      updateFromPointer(event);
+    });
+
+    window.addEventListener('mouseup', () => {
+      state.dragging = false;
+    });
+
+    mainCanvas.addEventListener('mouseleave', () => {
+      state.dragging = false;
+    });
+
+    window.addEventListener('resize', () => {
+      requestAnimationFrame(notifyParent);
+    });
+
+    renderPage4();
+  </script>
+</body>
+</html>

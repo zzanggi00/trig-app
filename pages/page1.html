@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1차시 일반각</title>
+  <link rel="stylesheet" href="../assets/common.css" />
+</head>
+<body class="lower-page">
+  <div class="inner">
+    <section class="hero-card">
+      <h1>1. 일반각</h1>
+    </section>
+
+    <section class="layout side-panel">
+      <aside class="panel">
+        <h2>조작 패널</h2>
+        <div class="subtext">각도를 입력하거나 슬라이더로 조절하고, 오른쪽 그림에서는 동경 OP를 직접 끌어 각도를 바꿔 보세요.</div>
+        <div id="leftPanel"></div>
+      </aside>
+
+      <main class="viewer">
+        <div class="viewer-top">
+          <div>
+            <div class="formula">일반각</div>
+          </div>
+        </div>
+        <div id="rightView"></div>
+      </main>
+    </section>
+  </div>
+
+  <script src="../assets/common.js"></script>
+  <script>
+    const C = TrigCommon;
+    const state = { angleDeg: 60, dragging: false };
+    const leftPanel = document.getElementById('leftPanel');
+    const rightView = document.getElementById('rightView');
+
+    function coterminalExamples(reduced) {
+      return [reduced, reduced + 360, reduced - 360, reduced + 720, reduced - 1080];
+    }
+
+    function generalAngleDescription(deg) {
+      const reduced = C.normalizeDeg(deg);
+      const k = (deg - reduced) / 360;
+      const kText = Number.isInteger(k) ? k : Number(k.toFixed(3));
+      if (kText === 0) return `${deg}° = ${reduced}° + 360°×0`;
+      return `${deg}° = ${reduced}° ${kText > 0 ? '+' : '-'} 360°×${Math.abs(kText)}`;
+    }
+
+    function renderLeft() {
+      const angle = state.angleDeg;
+      const reduced = C.normalizeDeg(angle);
+      leftPanel.innerHTML = `
+        <div class="section">
+          <label for="angleInput">각도 입력(도)</label>
+          <div class="row">
+            <input id="angleInput" type="number" value="${angle}" step="1" />
+            <span class="value-chip">${angle}°</span>
+          </div>
+          <div class="range-wrap">
+            <div class="zero-marker"></div>
+            <input id="angleSlider" type="range" min="-1440" max="1440" step="1" value="${Math.max(-1440, Math.min(1440, angle))}" />
+            <div class="range-labels">
+              <span>-1440°</span>
+              <span class="center-label">0°</span>
+              <span>1440°</span>
+            </div>
+          </div>
+          <div class="small-buttons">
+            <button data-angle="60">60°</button>
+            <button data-angle="150">150°</button>
+            <button data-angle="420">420°</button>
+            <button data-angle="-300">-300°</button>
+            <button data-angle="-1020">60°-360°×3</button>
+          </div>
+        </div>
+        <div class="section">
+          <label>현재 각의 해석</label>
+          <div class="meta-card">
+            <div><strong>입력한 일반각</strong> : ${angle}°</div>
+            <div><strong>같은 동경을 만드는 대표각</strong> : ${reduced}°</div>
+            <div><strong>현재 각의 분해</strong> : ${generalAngleDescription(angle)}</div>
+          </div>
+        </div>
+        <div class="section">
+          <label>조작 안내</label>
+          <div class="meta-card">왼쪽 입력창, 슬라이더, 오른쪽 그림의 동경 OP 끝점을 모두 이용해 각도를 바꿀 수 있습니다.</div>
+        </div>
+      `;
+
+      document.getElementById('angleInput').addEventListener('input', e => {
+        const raw = e.target.value;
+        state.angleDeg = (raw === '' || raw === '-') ? 0 : Number(raw);
+        render();
+      });
+      document.getElementById('angleSlider').addEventListener('input', e => {
+        state.angleDeg = Number(e.target.value);
+        render();
+      });
+      document.querySelectorAll('[data-angle]').forEach(btn => btn.addEventListener('click', () => {
+        state.angleDeg = Number(btn.dataset.angle);
+        render();
+      }));
+    }
+
+    function renderRight() {
+      const angle = state.angleDeg;
+      const reduced = C.normalizeDeg(angle);
+      rightView.innerHTML = `
+        <div class="canvas-wrap ratio-16-9"><canvas id="angleCanvas" width="1000" height="560"></canvas></div>
+        <div class="info-grid cols-3">
+          <div class="info-item"><div class="k">입력한 일반각</div><div class="v">${angle}°</div></div>
+          <div class="info-item"><div class="k">같은 동경의 대표각<br>0° ≤ α &lt; 360°</div><div class="v">${reduced}°</div></div>
+          <div class="info-item"><div class="k">같은 동경의 예</div><div class="v" style="font-size:14px; line-height:1.5;">${reduced}°, ${reduced + 360}°, ${reduced - 360}°</div></div>
+        </div>
+        <div class="explain-box" style="border:2px solid #c7d2fe; background:#eef2ff;">
+          <strong style="font-size:16px; color:#3730a3;">현재 입력 각의 구조</strong><br>
+          <div style="margin-top:8px; font-size:18px; font-weight:800; color:#1e3a8a;">${generalAngleDescription(angle)}</div><br>
+          <strong>같은 동경을 만드는 일반각의 예</strong><br>
+          ${reduced}° = ${reduced + 360}° = ${reduced - 360}° = ${reduced + 720}° = ${reduced - 1080}°
+        </div>
+      `;
+      drawCanvas(angle);
+      setupCanvasInteraction();
+    }
+
+    function drawCanvas(angleDeg) {
+      const canvas = document.getElementById('angleCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const cx = w * 0.43, cy = h * 0.56;
+      const axisLen = 260, rayLen = 220, circleR = 120;
+      const reducedDeg = C.normalizeDeg(angleDeg);
+      const reducedRad = C.toRad(reducedDeg);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, circleR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - axisLen, cy); ctx.lineTo(cx + axisLen, cy); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + axisLen * 0.8); ctx.lineTo(cx, cy - axisLen * 0.8); ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      C.drawArrowHead(ctx, cx + axisLen - 20, cy, cx + axisLen, cy, 11);
+      C.drawArrowHead(ctx, cx, cy - axisLen * 0.8 + 20, cx, cy - axisLen * 0.8, 11);
+
+      ctx.font = 'bold 18px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('X', cx + axisLen + 10, cy + 6);
+      ctx.fillText('Y', cx - 14, cy - axisLen * 0.8 - 14);
+      ctx.fillText('O', cx - 22, cy + 24);
+      ctx.fillStyle = '#2563eb';
+      ctx.fillText('시초선 OX', cx + 145, cy - 14);
+
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + rayLen, cy); ctx.stroke();
+      ctx.fillStyle = '#2563eb';
+      C.drawArrowHead(ctx, cx + rayLen - 20, cy, cx + rayLen, cy, 12);
+
+      const px = cx + rayLen * Math.cos(-reducedRad);
+      const py = cy + rayLen * Math.sin(-reducedRad);
+      ctx.strokeStyle = '#7c3aed';
+      ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+      ctx.fillStyle = '#7c3aed';
+      C.drawArrowHead(ctx, cx + (rayLen - 20) * Math.cos(-reducedRad), cy + (rayLen - 20) * Math.sin(-reducedRad), px, py, 12);
+
+      C.drawArc(ctx, cx, cy, 70, 0, -reducedRad, angleDeg >= 0, '#f59e0b');
+
+      ctx.fillStyle = '#7c3aed';
+      ctx.font = 'bold 20px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('동경 OP', px + 12, py - 10);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 18px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText(`입력한 각: ${angleDeg}°`, 40, 42);
+      ctx.fillText(`대표각: ${reducedDeg}°`, 40, 72);
+
+      ctx.font = '16px HCR Batang, 함초롱바탕, serif';
+      ctx.fillStyle = '#475569';
+      ctx.fillText('반시계 방향은 양의 각, 시계 방향은 음의 각으로 본다.', 40, 108);
+      ctx.fillText('동경 OP를 마우스로 끌어 각도를 직접 바꿀 수 있다.', 40, 136);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, cy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#334155';
+      ctx.font = '15px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText(`현재 동경은 ${reducedDeg}° 방향과 일치`, 40, 178);
+      const ex = coterminalExamples(reducedDeg);
+      ctx.fillText('같은 동경의 예:', 40, 216);
+      ctx.fillText(`${ex[0]}°, ${ex[1]}°, ${ex[2]}°, ${ex[3]}°, ${ex[4]}°`, 40, 244);
+    }
+
+    function setupCanvasInteraction() {
+      const canvas = document.getElementById('angleCanvas');
+      const cx = canvas.width * 0.43;
+      const cy = canvas.height * 0.56;
+
+      const updateFromPointer = (event) => {
+        const pos = C.getCanvasCoords(event, canvas);
+        const dx = pos.x - cx, dy = pos.y - cy;
+        if (Math.sqrt(dx * dx + dy * dy) < 35) return;
+        const baseDeg = C.canvasAngleToDegree(pos.x, pos.y, cx, cy);
+        state.angleDeg = Math.round(C.nearestCoterminal(baseDeg, state.angleDeg));
+        render();
+      };
+
+      canvas.addEventListener('mousedown', event => {
+        state.dragging = true;
+        updateFromPointer(event);
+      });
+      canvas.addEventListener('mousemove', event => {
+        if (state.dragging) updateFromPointer(event);
+      });
+      window.addEventListener('mouseup', () => { state.dragging = false; }, { once: true });
+      canvas.addEventListener('mouseleave', () => { state.dragging = false; });
+    }
+
+    function render() {
+      renderLeft();
+      renderRight();
+      C.postHeight('page1');
+    }
+
+    window.addEventListener('load', render);
+    window.addEventListener('resize', () => C.postHeight('page1'));
+  </script>
+</body>
+</html>

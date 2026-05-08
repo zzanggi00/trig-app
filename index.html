@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>삼각함수 개념 탐구 웹앱</title>
+  <link rel="stylesheet" href="assets/common.css" />
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <h1>삼각함수 개념 탐구 웹앱</h1>
+      <p><strong>대상:</strong> 고등학교 2학년 대수(2022 개정교육과정)</p>
+
+      <div class="nav-grid">
+        <a class="nav-btn active" data-page="page1" href="pages/page1.html" target="contentFrame">1.일반각</a>
+        <a class="nav-btn" data-page="page2" href="pages/page2.html" target="contentFrame">2.호도법과 육십분법</a>
+        <a class="nav-btn" data-page="page3" href="pages/page3.html" target="contentFrame">3.삼각함수의 정의</a>
+        <a class="nav-btn" data-page="page4" href="pages/page4.html" target="contentFrame">4.삼각함수 간의 관계</a>
+        <a class="nav-btn" data-page="page5" href="pages/page5.html" target="contentFrame">5.삼각함수의 그래프(사인)</a>
+        <a class="nav-btn" data-page="page6" href="pages/page6.html" target="contentFrame">6.삼각함수의 그래프(코사인)</a>
+        <a class="nav-btn" data-page="page7" href="pages/page7.html" target="contentFrame">7.삼각함수의 그래프(탄젠트)</a>
+        <a class="nav-btn" data-page="page8" href="pages/page8.html" target="contentFrame">8.삼각함수의 그래프의 변형(사인)</a>
+        <a class="nav-btn" data-page="page9" href="pages/page9.html" target="contentFrame">9.삼각함수의 그래프의 변형(코사인)</a>
+        <a class="nav-btn" data-page="page10" href="pages/page10.html" target="contentFrame">10.삼각함수의 그래프의 변형(탄젠트)</a>
+        <a class="nav-btn" data-page="page11" href="pages/page11.html" target="contentFrame">11.방정식과 부등식</a>
+        <a class="nav-btn" data-page="page12" href="pages/page12.html" target="contentFrame">12.±π/2, ±π 비교</a>
+      </div>
+    </section>
+
+    <div class="frame-wrap">
+      <iframe id="contentFrame" name="contentFrame" src="pages/page1.html" title="페이지별 콘텐츠"></iframe>
+    </div>
+  </div>
+
+  <script src="assets/common.js"></script>
+  <script>
+    TrigCommon.setupFrameShell('contentFrame', '.nav-btn', 760);
+  </script>
+</body>
+</html>

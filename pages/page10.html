@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10. y = a tan b(x-c) + d</title>
+  <link rel="stylesheet" href="../assets/common.css" />
+  <style>
+    .slider-block {
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .slider-block:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 1fr 100px;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .slider-control {
+      display: block;
+      width: 100%;
+    }
+
+    .slider-control input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .value-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 9px 10px;
+      font-size: 14px;
+      background: white;
+      text-align: center;
+      font-family: "HCR Batang", "함초롱바탕", serif;
+    }
+
+    .slider-help {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .formula-box {
+      margin-top: 14px;
+      border-radius: 16px;
+      padding: 14px;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      line-height: 1.75;
+      font-size: 14px;
+    }
+
+    .formula-box strong {
+      color: #3730a3;
+    }
+
+    .inline-note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .info-grid.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    @media (max-width: 900px) {
+      .info-grid.cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .info-grid.cols-4 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="lower-page">
+  <div class="inner">
+    <section class="hero-card">
+      <h1>10. 삼각함수 그래프의 변환(탄젠트)</h1>
+      <p><strong>y = a tan b(x-c) + d</strong> 꼴의 그래프를 그리고, 각 상수가 그래프에 어떤 영향을 주는지 확인합니다.</p>
+      <p><strong>a</strong>는 그래프의 위아래 확대와 반사, <strong>b</strong>는 주기 변화, <strong>c</strong>는 x축 방향 평행이동, <strong>d</strong>는 y축 방향 평행이동을 나타냅니다.</p>
+    </section>
+
+    <section class="layout wide-left">
+      <section class="card">
+        <div class="head-block">
+          <h2>조작 패널</h2>
+          <p class="subtext compact">슬라이더를 움직이거나 값을 직접 입력하며 그래프의 변화를 비교해 보세요.</p>
+        </div>
+
+        <div class="slider-block">
+          <label for="aRange"><strong>a</strong> (세로 확대/반사)</label>
+          <div class="slider-row">
+            <div class="slider-control">
+              <input id="aRange" type="range" min="-20" max="30" step="1" value="10" />
+              <div class="slider-help">
+                <span>-2</span><span>0</span><span>3</span>
+              </div>
+            </div>
+            <input id="aInput" class="value-input" type="number" step="0.1" value="1" />
+          </div>
+        </div>
+
+        <div class="slider-block">
+          <label for="bRange"><strong>b</strong> (주기 변화)</label>
+          <div class="slider-row">
+            <div class="slider-control">
+              <input id="bRange" type="range" min="0" max="50" step="1" value="10" />
+              <div class="slider-help">
+                <span>0</span><span>2.5</span><span>5</span>
+              </div>
+            </div>
+            <input id="bInput" class="value-input" type="number" step="0.1" value="1" />
+          </div>
+          <div class="inline-note">b = 0 이면 그래프는 상수함수 y = d 가 됩니다.</div>
+        </div>
+
+        <div class="slider-block">
+          <label for="cRange"><strong>c</strong> (x축 방향 평행이동)</label>
+          <div class="slider-row">
+            <div class="slider-control">
+              <input id="cRange" type="range" min="-6" max="12" step="1" value="0" />
+              <div class="slider-help">
+                <span>-π</span><span>π/2</span><span>2π</span>
+              </div>
+            </div>
+            <input id="cInput" class="value-input" type="text" value="0" />
+          </div>
+          <div class="inline-note">예: pi, pi/6, -pi, 3pi/2, 2*pi</div>
+        </div>
+
+        <div class="slider-block">
+          <label for="dRange"><strong>d</strong> (y축 방향 평행이동)</label>
+          <div class="slider-row">
+            <div class="slider-control">
+              <input id="dRange" type="range" min="-20" max="20" step="1" value="0" />
+              <div class="slider-help">
+                <span>-2</span><span>0</span><span>2</span>
+              </div>
+            </div>
+            <input id="dInput" class="value-input" type="number" step="0.1" value="0" />
+          </div>
+        </div>
+
+        <div class="small-buttons">
+          <button id="resetBtn">기본값으로 되돌리기</button>
+        </div>
+
+        <div class="formula-box" id="summaryBox"></div>
+      </section>
+
+      <section class="card">
+        <div class="head-block">
+          <h2>그래프</h2>
+          <p class="subtext compact">흐린 그래프는 기본형 <strong>y = tan x</strong>, 진한 그래프는 현재 변형된 그래프입니다.</p>
+        </div>
+
+        <div class="formula" id="formulaText">y = tan x</div>
+
+        <div class="canvas-wrap fixed-520">
+          <canvas id="graphCanvas"></canvas>
+        </div>
+
+        <div class="info-grid cols-4">
+          <div class="info-item">
+            <div class="k">주기</div>
+            <div class="v" id="periodText">π</div>
+          </div>
+          <div class="info-item">
+            <div class="k">기준선</div>
+            <div class="v" id="midlineText">0</div>
+          </div>
+          <div class="info-item">
+            <div class="k">평행이동</div>
+            <div class="v" id="shiftText">x: 0 / y: 0</div>
+          </div>
+          <div class="info-item">
+            <div class="k">점근선 기준</div>
+            <div class="v" id="asymptoteText">x = π/2 + kπ</div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script src="../assets/common.js"></script>
+  <script>
+    const C = TrigCommon;
+
+    const state = {
+      a: 1,
+      b: 1,
+      c: 0,
+      d: 0
+    };
+
+    const graphCanvas = document.getElementById('graphCanvas');
+
+    const aRange = document.getElementById('aRange');
+    const bRange = document.getElementById('bRange');
+    const cRange = document.getElementById('cRange');
+    const dRange = document.getElementById('dRange');
+
+    const aInput = document.getElementById('aInput');
+    const bInput = document.getElementById('bInput');
+    const cInput = document.getElementById('cInput');
+    const dInput = document.getElementById('dInput');
+
+    const formulaText = document.getElementById('formulaText');
+    const summaryBox = document.getElementById('summaryBox');
+
+    const periodText = document.getElementById('periodText');
+    const midlineText = document.getElementById('midlineText');
+    const shiftText = document.getElementById('shiftText');
+    const asymptoteText = document.getElementById('asymptoteText');
+
+    const resetBtn = document.getElementById('resetBtn');
+
+    const X_MIN = -Math.PI;
+    const X_MAX = 3 * Math.PI;
+    const Y_MIN = -5;
+    const Y_MAX = 5;
+    const C_UNIT = Math.PI / 6;
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function formatShift(c) {
+      if (Math.abs(c) < 1e-9) return 'x';
+      return c > 0 ? `x - ${C.radToPiText(c)}` : `x + ${C.radToPiText(Math.abs(c))}`;
+    }
+
+    function formatCInputValue(value) {
+      const piText = C.radToPiText(value);
+      return piText !== '0' ? piText : C.formatNum(value);
+    }
+
+    function parsePiExpression(raw) {
+      if (typeof raw !== 'string') return null;
+      let s = raw.trim().toLowerCase();
+      if (!s) return null;
+
+      s = s.replace(/π/g, 'pi');
+      s = s.replace(/\s+/g, '');
+
+      if (!/^[0-9+\-*/().pi]+$/.test(s)) return null;
+
+      s = s.replace(/pi/g, 'P');
+      s = s.replace(/(\d|\))P/g, '$1*P');
+      s = s.replace(/P(?=\d|\()/g, 'P*');
+      s = s.replace(/(\d)\(/g, '$1*(');
+      s = s.replace(/\)(?=\d|P|\()/g, ')*');
+
+      const js = s.replace(/P/g, 'Math.PI');
+
+      try {
+        const value = Function('"use strict"; return (' + js + ');')();
+        return Number.isFinite(value) ? value : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function syncInputs() {
+      aRange.value = Math.round(state.a * 10);
+      bRange.value = Math.round(state.b * 10);
+      dRange.value = Math.round(state.d * 10);
+
+      aInput.value = C.formatNum(state.a);
+      bInput.value = C.formatNum(state.b);
+      dInput.value = C.formatNum(state.d);
+
+      const cStep = Math.round(state.c / C_UNIT);
+      cRange.value = cStep;
+      cInput.value = formatCInputValue(state.c);
+    }
+
+    function makeFormulaString() {
+      const a = C.formatNum(state.a);
+      const b = C.formatNum(state.b);
+      const c = state.c;
+      const d = state.d;
+
+      const inside = `${b}(${formatShift(c)})`;
+      let text = `y = ${a}tan ${inside}`;
+      if (Math.abs(d) > 1e-9) {
+        text += d > 0 ? ` + ${C.formatNum(d)}` : ` - ${C.formatNum(Math.abs(d))}`;
+      }
+      return text;
+    }
+
+    function getPeriodText() {
+      if (Math.abs(state.b) < 1e-9) return '정의 어려움';
+      const p = Math.PI / Math.abs(state.b);
+      return `${C.radToPiText(p)} ≈ ${C.formatNum(p)}`;
+    }
+
+    function baseGraphValue(x) {
+      return Math.tan(x);
+    }
+
+    function graphValue(x) {
+      if (Math.abs(state.b) < 1e-9) return state.d;
+      return state.a * Math.tan(state.b * (x - state.c)) + state.d;
+    }
+
+    function xToPx(x, left, width) {
+      return left + (x - X_MIN) / (X_MAX - X_MIN) * width;
+    }
+
+    function yToPx(y, top, height) {
+      return top + (Y_MAX - y) / (Y_MAX - Y_MIN) * height;
+    }
+
+    function updateOutputs() {
+      syncInputs();
+      formulaText.textContent = makeFormulaString();
+
+      periodText.textContent = getPeriodText();
+      midlineText.textContent = C.formatNum(state.d);
+      shiftText.textContent = `x: ${C.radToPiText(state.c)} / y: ${C.formatNum(state.d)}`;
+
+      if (Math.abs(state.b) < 1e-9) {
+        asymptoteText.textContent = '없음';
+      } else {
+        asymptoteText.textContent = `x = ${C.radToPiText(state.c)} + (π/2+kπ)/${C.formatNum(state.b)}`;
+      }
+
+      summaryBox.innerHTML = `
+        <strong>현재 식</strong><br>
+        ${makeFormulaString()}<br><br>
+        <strong>a</strong> : 그래프를 세로로 확대·축소하고, 음수이면 x축 대칭이 일어납니다.<br>
+        <strong>b</strong> : 주기를 바꿉니다. 현재 주기 = ${getPeriodText()}<br>
+        <strong>c</strong> : x축 방향으로 ${C.radToPiText(state.c)}만큼 평행이동합니다.<br>
+        <strong>d</strong> : y축 방향으로 ${C.formatNum(state.d)}만큼 평행이동합니다.<br><br>
+        <strong>기준선</strong> : y = ${C.formatNum(state.d)}<br>
+        <strong>점근선</strong> : ${Math.abs(state.b) < 1e-9 ? '없음' : `x = ${C.radToPiText(state.c)} + (π/2+kπ)/${C.formatNum(state.b)}`}
+      `;
+    }
+
+    function drawTanCurve(ctx, fn, left, top, gw, gh, color, width, isBase = false) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+
+      let active = false;
+
+      for (let i = 0; i <= 1800; i++) {
+        const x = X_MIN + (X_MAX - X_MIN) * i / 1800;
+        const y = fn(x);
+
+        if (!Number.isFinite(y) || Math.abs(y) > 6) {
+          if (active) {
+            ctx.stroke();
+            active = false;
+          }
+          continue;
+        }
+
+        const px = xToPx(x, left, gw);
+        const py = yToPx(y, top, gh);
+
+        if (!active) {
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          active = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+
+      if (active) ctx.stroke();
+    }
+
+    function drawAsymptotes(ctx, left, top, gw, gh, isBase = false) {
+      ctx.strokeStyle = isBase ? 'rgba(252, 165, 165, 0.45)' : '#fca5a5';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([6, 4]);
+
+      if (isBase) {
+        for (let k = -3; k <= 5; k++) {
+          const x = Math.PI / 2 + k * Math.PI;
+          if (x >= X_MIN && x <= X_MAX) {
+            const px = xToPx(x, left, gw);
+            ctx.beginPath();
+            ctx.moveTo(px, top);
+            ctx.lineTo(px, top + gh);
+            ctx.stroke();
+          }
+        }
+      } else if (Math.abs(state.b) > 1e-9) {
+        for (let k = -10; k <= 10; k++) {
+          const x = state.c + (Math.PI / 2 + k * Math.PI) / state.b;
+          if (x >= X_MIN && x <= X_MAX) {
+            const px = xToPx(x, left, gw);
+            ctx.beginPath();
+            ctx.moveTo(px, top);
+            ctx.lineTo(px, top + gh);
+            ctx.stroke();
+          }
+        }
+      }
+
+      ctx.setLineDash([]);
+    }
+
+    function drawGraph() {
+      const { ctx, w, h } = C.resizeCanvas(graphCanvas);
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const left = 80;
+      const right = 30;
+      const top = 40;
+      const bottom = 60;
+      const gw = w - left - right;
+      const gh = h - top - bottom;
+
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+
+      [-Math.PI, 0, Math.PI, 2 * Math.PI, 3 * Math.PI].forEach(v => {
+        const px = xToPx(v, left, gw);
+        ctx.beginPath();
+        ctx.moveTo(px, top);
+        ctx.lineTo(px, top + gh);
+        ctx.stroke();
+      });
+
+      [-4, -2, 0, 2, 4].forEach(v => {
+        const py = yToPx(v, top, gh);
+        ctx.beginPath();
+        ctx.moveTo(left, py);
+        ctx.lineTo(left + gw, py);
+        ctx.stroke();
+      });
+
+      // 기본형 점근선
+      drawAsymptotes(ctx, left, top, gw, gh, true);
+
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2.2;
+
+      ctx.beginPath();
+      ctx.moveTo(left, yToPx(0, top, gh));
+      ctx.lineTo(left + gw, yToPx(0, top, gh));
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(xToPx(0, left, gw), top + gh);
+      ctx.lineTo(xToPx(0, left, gw), top);
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      C.drawArrowHead(ctx, left + gw - 18, yToPx(0, top, gh), left + gw, yToPx(0, top, gh), 9);
+      C.drawArrowHead(ctx, xToPx(0, left, gw), top + 18, xToPx(0, left, gw), top, 9);
+
+      ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('-π', xToPx(-Math.PI, left, gw) - 10, yToPx(0, top, gh) + 28);
+      ctx.fillText('0', xToPx(0, left, gw) - 6, yToPx(0, top, gh) + 28);
+      ctx.fillText('π', xToPx(Math.PI, left, gw) - 6, yToPx(0, top, gh) + 28);
+      ctx.fillText('2π', xToPx(2 * Math.PI, left, gw) - 10, yToPx(0, top, gh) + 28);
+      ctx.fillText('3π', xToPx(3 * Math.PI, left, gw) - 10, yToPx(0, top, gh) + 28);
+
+      [-4, -2, 2, 4].forEach(v => {
+        ctx.fillText(String(v), xToPx(0, left, gw) + 10, yToPx(v, top, gh) + 6);
+      });
+
+      // 기본형 tan x
+      drawTanCurve(ctx, baseGraphValue, left, top, gw, gh, 'rgba(124, 58, 237, 0.16)', 2.5, true);
+
+      // 변형 그래프 점근선
+      drawAsymptotes(ctx, left, top, gw, gh, false);
+
+      // 변형 그래프
+      drawTanCurve(ctx, graphValue, left, top, gw, gh, '#7c3aed', 3, false);
+
+      // y = d 기준선
+      if (Math.abs(state.d) > 1e-9) {
+        const dy = yToPx(state.d, top, gh);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1.3;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(left, dy);
+        ctx.lineTo(left + gw, dy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '14px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('흐린 그래프와 현재 그래프를 비교하며 변화량을 관찰해 보세요.', left, h - 18);
+    }
+
+    function render() {
+      updateOutputs();
+      drawGraph();
+      C.postHeight('page10');
+    }
+
+    aRange.addEventListener('input', e => {
+      state.a = Number(e.target.value) / 10;
+      render();
+    });
+
+    bRange.addEventListener('input', e => {
+      state.b = Number(e.target.value) / 10;
+      render();
+    });
+
+    cRange.addEventListener('input', e => {
+      state.c = Number(e.target.value) * C_UNIT;
+      render();
+    });
+
+    dRange.addEventListener('input', e => {
+      state.d = Number(e.target.value) / 10;
+      render();
+    });
+
+    aInput.addEventListener('change', e => {
+      let v = Number(e.target.value);
+      if (!Number.isFinite(v)) v = state.a;
+      state.a = clamp(v, -2, 3);
+      render();
+    });
+
+    bInput.addEventListener('change', e => {
+      let v = Number(e.target.value);
+      if (!Number.isFinite(v)) v = state.b;
+      state.b = clamp(v, 0, 5);
+      render();
+    });
+
+    cInput.addEventListener('change', e => {
+      const parsed = parsePiExpression(e.target.value);
+      if (parsed === null) {
+        syncInputs();
+        return;
+      }
+      state.c = clamp(parsed, -Math.PI, 2 * Math.PI);
+      render();
+    });
+
+    dInput.addEventListener('change', e => {
+      let v = Number(e.target.value);
+      if (!Number.isFinite(v)) v = state.d;
+      state.d = clamp(v, -2, 2);
+      render();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      state.a = 1;
+      state.b = 1;
+      state.c = 0;
+      state.d = 0;
+      render();
+    });
+
+    window.addEventListener('resize', render);
+
+    render();
+  </script>
+</body>
+</html>

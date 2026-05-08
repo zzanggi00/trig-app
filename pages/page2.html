@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2차시 호도법과 육십분법</title>
+  <link rel="stylesheet" href="../assets/common.css" />
+</head>
+<body class="lower-page">
+  <div class="inner">
+    <section class="hero-card">
+      <h1>2. 호도법과 육십분법</h1>
+    </section>
+
+    <section class="layout side-panel">
+      <aside class="panel">
+        <h2>조작 패널</h2>
+        <div class="subtext">호도법과 육십분법을 서로 바꾸어 보세요. 오른쪽에서는 1라디안의 정의와 주요각의 표현을 확인할 수 있습니다.</div>
+        <div id="leftPanel"></div>
+      </aside>
+
+      <main class="viewer">
+        <div class="viewer-top">
+          <div>
+            <div class="formula">호도법과 육십분법</div>
+          </div>
+        </div>
+        <div id="rightView"></div>
+      </main>
+    </section>
+  </div>
+
+  <script src="../assets/common.js"></script>
+  <script>
+    const C = TrigCommon;
+    const state = { radianInput: 'π/3', degreeInput: '60' };
+    const leftPanel = document.getElementById('leftPanel');
+    const rightView = document.getElementById('rightView');
+
+    function renderLeft() {
+      const radValue = C.parseRadianInput(state.radianInput);
+      const radToDegText = radValue === null ? '입력 형식을 확인해 주세요.' : `${C.formatDegreeValue(C.radianToDegree(radValue))}°`;
+      const degValue = Number(state.degreeInput);
+      const degValid = state.degreeInput !== '' && Number.isFinite(degValue);
+      const degToRadExact = degValid ? C.degreeToRadianExactString(degValue) : '입력 형식을 확인해 주세요.';
+      const degToRadDecimal = degValid ? C.degreeToRadianDecimal(degValue) + ' rad' : '-';
+
+      leftPanel.innerHTML = `
+        <div class="section">
+          <label for="radianInput">호도법 입력</label>
+          <input id="radianInput" type="text" value="${state.radianInput}" placeholder="예: π/3, 3π/4, 1.2" />
+          <div class="dual-output"><div class="result-box"><strong>육십분법 변환</strong><br>${radToDegText}</div></div>
+          <div class="small-buttons">
+            <button data-rad="π/6">π/6</button><button data-rad="π/4">π/4</button>
+            <button data-rad="π/3">π/3</button><button data-rad="π/2">π/2</button><button data-rad="1">1 rad</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <label for="degreeInput">육십분법 입력</label>
+          <input id="degreeInput" type="number" value="${state.degreeInput}" step="0.1" placeholder="예: 60" />
+          <div class="dual-output">
+            <div class="result-box"><strong>호도법 변환(π 기준)</strong><br>${degToRadExact}</div>
+            <div class="result-box"><strong>호도법 변환(소수값)</strong><br>${degToRadDecimal}</div>
+          </div>
+          <div class="small-buttons">
+            <button data-deg="30">30°</button><button data-deg="45">45°</button>
+            <button data-deg="60">60°</button><button data-deg="90">90°</button><button data-deg="180">180°</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <label>입력 안내</label>
+          <div class="meta-card">호도법 입력칸에는 <strong>π/6, 3π/4, -π, 1</strong>처럼 넣을 수 있습니다.</div>
+        </div>
+      `;
+
+      document.getElementById('radianInput').addEventListener('input', e => { state.radianInput = e.target.value; render(); });
+      document.getElementById('degreeInput').addEventListener('input', e => { state.degreeInput = e.target.value; render(); });
+      document.querySelectorAll('[data-rad]').forEach(btn => btn.addEventListener('click', () => { state.radianInput = btn.dataset.rad; render(); }));
+      document.querySelectorAll('[data-deg]').forEach(btn => btn.addEventListener('click', () => { state.degreeInput = btn.dataset.deg; render(); }));
+    }
+
+    function drawRadianDefinition() {
+      const canvas = document.getElementById('radianDefCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      const cx = 250, cy = 235, r = 140, theta = 1;
+      const ax = cx + r, ay = cy;
+      const bx = cx + r * Math.cos(-theta), by = cy + r * Math.sin(-theta);
+
+      ctx.strokeStyle = '#444'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = 'rgba(139, 92, 246, 0.22)';
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, 0, -theta, true); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#555'; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ax, ay); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(bx, by); ctx.stroke();
+      ctx.strokeStyle = '#666'; ctx.lineWidth = 2.8;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, -theta, true); ctx.stroke();
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx, cy, 42, 0, -theta, true); ctx.stroke();
+
+      ctx.fillStyle = '#333'; ctx.font = 'bold 18px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('O', cx - 18, cy + 22); ctx.fillText('A', ax + 10, ay + 8); ctx.fillText('B', bx + 10, by - 2);
+      ctx.font = 'italic 20px Georgia';
+      ctx.fillText('r', cx + r * 0.52, cy + 28);
+      const arcMid = -theta / 2;
+      ctx.fillText('r', cx + (r + 18) * Math.cos(arcMid), cy + (r + 18) * Math.sin(arcMid) - 2);
+      ctx.font = 'italic 18px Georgia'; ctx.fillText('α = 1 rad', cx + 22, cy - 18);
+
+      ctx.fillStyle = '#0f172a'; ctx.font = 'bold 20px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('반지름의 길이와 호의 길이가 같을 때의 중심각 = 1라디안', 470, 96);
+      ctx.font = '18px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('OA = r 이고, 호 AB = r 인 중심각을 1 rad 로 정의한다.', 470, 138);
+      ctx.fillText('1 rad ≈ 57.3°', 470, 180);
+      ctx.fillText('180° = π rad', 470, 222);
+      ctx.fillText('따라서 각도와 호도법은 서로 바꿔 표현할 수 있다.', 470, 264);
+    }
+
+    function getAngles() {
+      return [[0,'0'],[30,'π/6'],[45,'π/4'],[60,'π/3'],[90,'π/2'],[120,'2π/3'],[135,'3π/4'],[150,'5π/6'],[180,'π'],[210,'7π/6'],[225,'5π/4'],[240,'4π/3'],[270,'3π/2'],[300,'5π/3'],[315,'7π/4'],[330,'11π/6']];
+    }
+
+    function drawUnitCircle() {
+      const canvas = document.getElementById('unitCircleCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      const cx = w / 2, cy = h / 2 + 8, r = 150, labelR = 228;
+
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.moveTo(cx - 280, cy); ctx.lineTo(cx + 280, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, cy - 200); ctx.lineTo(cx, cy + 200); ctx.stroke();
+      ctx.fillStyle = '#0f172a';
+      C.drawArrowHead(ctx, cx + 260, cy, cx + 280, cy, 10);
+      C.drawArrowHead(ctx, cx, cy - 180, cx, cy - 200, 10);
+      ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('주요각의 호도법과 육십분법', 34, 34);
+      ctx.fillText('X', cx + 292, cy + 6); ctx.fillText('Y', cx - 16, cy - 214); ctx.fillText('O', cx - 24, cy + 24);
+
+      getAngles().forEach(([deg, rad]) => {
+        const theta = C.toRad(deg);
+        const px = cx + r * Math.cos(-theta), py = cy + r * Math.sin(-theta);
+        const lx = cx + labelR * Math.cos(-theta), ly = cy + labelR * Math.sin(-theta);
+        ctx.strokeStyle = '#dbe4f0'; ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(lx, ly); ctx.stroke();
+        ctx.fillStyle = '#2563eb'; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#334155'; ctx.font = '12px HCR Batang, 함초롱바탕, serif'; ctx.fillText(`${deg}°`, lx, ly - 8);
+        ctx.fillStyle = '#7c3aed'; ctx.font = 'bold 13px HCR Batang, 함초롱바탕, serif'; ctx.fillText(rad, lx, ly + 10);
+      });
+      ctx.textAlign = 'start';
+    }
+
+    function renderRight() {
+      rightView.innerHTML = `
+        <div class="canvas-wrap ratio-16-8"><canvas id="radianDefCanvas" width="1000" height="420"></canvas></div>
+        <div class="explain-box" style="border:2px solid #bbf7d0; background:#f0fdf4;">
+          <strong style="font-size:16px; color:#166534;">1라디안의 정의</strong><br>
+          반지름의 길이와 호의 길이가 같아질 때의 중심각을 <strong>1라디안</strong>이라고 합니다.
+        </div>
+        <div class="canvas-wrap ratio-16-8" style="margin-top:14px;"><canvas id="unitCircleCanvas" width="1000" height="500"></canvas></div>
+      `;
+      drawRadianDefinition();
+      drawUnitCircle();
+    }
+
+    function render() {
+      renderLeft();
+      renderRight();
+      C.postHeight('page2');
+    }
+
+    window.addEventListener('load', render);
+    window.addEventListener('resize', () => C.postHeight('page2'));
+  </script>
+</body>
+</html>

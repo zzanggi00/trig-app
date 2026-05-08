@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5. 사인 함수 그래프</title>
+  <link rel="stylesheet" href="../assets/common.css" />
+</head>
+<body class="lower-page">
+  <div class="inner">
+    <section class="hero-card">
+      <h1>5. 삼각함수의 그래프(사인)</h1>
+      <p>단위원 위의 점 <strong>P</strong>를 움직이면 점의 <strong>y좌표</strong>가 변하고, 이것이 바로 <strong>sin θ</strong>의 값이 됩니다.</p>
+      <p>왼쪽 단위원에서 점 P를 움직이면 오른쪽 그래프에 <strong>(θ, sin θ)</strong>가 누적되어 찍히며 사인 그래프가 만들어집니다.</p>
+    </section>
+
+    <section class="layout wide-left">
+      <section class="card">
+        <div class="head-block">
+          <h2>단위원</h2>
+          <p class="subtext compact">점 P를 직접 움직이면 sin 함수의 그래프가 그려집니다.</p>
+          <p class="subtext compact">각의 크기는 -π에서 3π까지 라디안값으로 표현됩니다.</p>
+          <p class="subtext compact">아래 지우기 버튼을 누르면 그래프가 초기화 됩니다.</p>
+
+        </div>
+        <button id="clearBtn" class="clear-btn">지우기</button>
+        <div class="canvas-wrap fixed-520"><canvas id="circleCanvas"></canvas></div>
+        <div class="small-buttons">
+          <button data-angle="-180">-π</button><button data-angle="-90">-π/2</button><button data-angle="0">0</button>
+          <button data-angle="90">π/2</button><button data-angle="180">π</button><button data-angle="270">3π/2</button>
+          <button data-angle="360">2π</button><button data-angle="540">3π</button>
+        </div>
+        <div class="meta-card" id="stateBox"></div>
+      </section>
+
+      <section class="card">
+        <div class="head-block">
+          <h2>사인 함수 그래프</h2>
+          <p class="subtext compact">x축은 θ, y축은 sin θ 입니다. 왼쪽의 지우기 버튼으로 그래프를 초기화할 수 있습니다.</p>
+        </div>
+
+        <div class="info-grid cols-2">
+          <div class="info-item"><div class="k">현재 θ (rad)</div><div class="v" id="radText">0</div></div>
+          <div class="info-item"><div class="k">sin θ</div><div class="v" id="sinText">0</div></div>
+        </div>
+
+        <div class="canvas-wrap fixed-520"><canvas id="graphCanvas"></canvas></div>
+
+      </section>
+    </section>
+  </div>
+
+  <script src="../assets/common.js"></script>
+  <script>
+    const C = TrigCommon;
+    const state = { angleDeg: 0, dragging: false, tracePoints: [] };
+    const circleCanvas = document.getElementById('circleCanvas');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const clearBtn = document.getElementById('clearBtn');
+    const stateBox = document.getElementById('stateBox');
+    const radText = document.getElementById('radText');
+    const sinText = document.getElementById('sinText');
+    const X_MIN = -Math.PI, X_MAX = 3 * Math.PI;
+
+    function getValues() {
+      const theta = C.toRad(state.angleDeg);
+      const reducedTheta = C.toRad(C.normalizeDeg(state.angleDeg));
+      const x = Math.cos(theta), y = Math.sin(theta);
+      return { theta, reducedTheta, x, y };
+    }
+
+    function addTracePoint() {
+      const { theta, y } = getValues();
+      if (theta < X_MIN || theta > X_MAX) return;
+      const last = state.tracePoints[state.tracePoints.length - 1];
+      if (!last || Math.abs(last.theta - theta) > 0.01 || Math.abs(last.y - y) > 0.001) state.tracePoints.push({ theta, y });
+    }
+
+    function setAngle(newDeg, shouldTrace = true) {
+      if (!Number.isFinite(newDeg)) return;
+      state.angleDeg = Math.max(-180, Math.min(540, newDeg));
+      if (shouldTrace) addTracePoint();
+      render();
+    }
+
+    function updateOutputs() {
+      const { theta, x, y } = getValues();
+      radText.textContent = C.formatNum(theta);
+      sinText.textContent = C.formatNum(y);
+      stateBox.innerHTML = `
+        <div><strong>현재각</strong> : ${C.formatNum(theta)} rad</div>
+        <div><strong>대표각</strong> : ${C.radToPiText(C.toRad(C.normalizeDeg(state.angleDeg)))}</div>
+        <div><strong>P의 좌표</strong> : (${C.formatNum(x)}, ${C.formatNum(y)})</div>
+        <div><strong>sin θ</strong> : ${C.formatNum(y)}</div>`;
+    }
+
+    function xToPx(theta, left, width) { return left + (theta - X_MIN) / (X_MAX - X_MIN) * width; }
+    function yToPx(y, top, plotHeight) { return top + (1 - y) / 2 * plotHeight; }
+
+    function drawCircleCanvas() {
+      const { ctx, w, h } = C.resizeCanvas(circleCanvas);
+      ctx.clearRect(0,0,w,h); ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+      const { top, bottom, cy, radius } = C.getSharedVerticalGeometry(h);
+      const cx = w / 2;
+      const { theta, reducedTheta, y } = getValues();
+      const px = cx + radius * Math.cos(-reducedTheta), py = cy + radius * Math.sin(-reducedTheta);
+      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.moveTo(cx - radius - 70, cy); ctx.lineTo(cx + radius + 70, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, h - bottom); ctx.lineTo(cx, top); ctx.stroke();
+      ctx.fillStyle = '#111827'; C.drawArrowHead(ctx, cx + radius + 52, cy, cx + radius + 70, cy, 9); C.drawArrowHead(ctx, cx, top + 18, cx, top, 9);
+      ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif'; ctx.fillText('x', cx + radius + 80, cy + 6); ctx.fillText('y', cx - 12, top - 12); ctx.fillText('O', cx - 22, cy + 22);
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + radius, cy); ctx.stroke();
+      ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+      ctx.fillStyle = '#7c3aed'; C.drawArrowHead(ctx, cx + (radius - 16) * Math.cos(-reducedTheta), cy + (radius - 16) * Math.sin(-reducedTheta), px, py, 10);
+      ctx.fillStyle = '#059669'; ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(w, py); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = '#059669'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(px, cy); ctx.lineTo(px, py); ctx.stroke();
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, 40, 0, -reducedTheta, true); ctx.stroke();
+      ctx.fillStyle = '#0f172a'; ctx.font = 'bold 17px HCR Batang, 함초롱바탕, serif'; ctx.fillText('P', px + 10, py - 8); ctx.fillText('θ', cx + 28, cy - 14);
+      ctx.fillStyle = '#334155'; ctx.font = '14px HCR Batang, 함초롱바탕, serif'; ctx.fillText(`θ = ${C.radToPiText(theta)}`, 14, 26); ctx.fillText(`y = ${C.formatNum(y)}`, 14, 50);
+    }
+
+    function drawGraphCanvas() {
+      const { ctx, w, h } = C.resizeCanvas(graphCanvas);
+      ctx.clearRect(0,0,w,h); ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+      const left = 80, right = 30;
+      const { top, bottom, plotHeight } = C.getSharedVerticalGeometry(h);
+      const gw = w - left - right;
+      ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+      [-Math.PI, 0, Math.PI, 2 * Math.PI, 3 * Math.PI].forEach(v => { const px = xToPx(v, left, gw); ctx.beginPath(); ctx.moveTo(px, top); ctx.lineTo(px, top + plotHeight); ctx.stroke(); });
+      [-1, 0, 1].forEach(v => { const py = yToPx(v, top, plotHeight); ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke(); });
+      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.moveTo(0, yToPx(0, top, plotHeight)); ctx.lineTo(w, yToPx(0, top, plotHeight)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xToPx(0, left, gw), h - bottom); ctx.lineTo(xToPx(0, left, gw), top); ctx.stroke();
+      ctx.fillStyle = '#111827'; C.drawArrowHead(ctx, w - 18, yToPx(0, top, plotHeight), w, yToPx(0, top, plotHeight), 9); C.drawArrowHead(ctx, xToPx(0, left, gw), top + 18, xToPx(0, left, gw), top, 9);
+      ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('-π', xToPx(-Math.PI, left, gw) - 10, yToPx(0, top, plotHeight) + 28); ctx.fillText('0', xToPx(0, left, gw) - 6, yToPx(0, top, plotHeight) + 28); ctx.fillText('π', xToPx(Math.PI, left, gw) - 6, yToPx(0, top, plotHeight) + 28); ctx.fillText('2π', xToPx(2 * Math.PI, left, gw) - 10, yToPx(0, top, plotHeight) + 28); ctx.fillText('3π', xToPx(3 * Math.PI, left, gw) - 10, yToPx(0, top, plotHeight) + 28);
+      ctx.fillText('1', xToPx(0, left, gw) + 10, yToPx(1, top, plotHeight) + 6); ctx.fillText('-1', xToPx(0, left, gw) + 10, yToPx(-1, top, plotHeight) + 6);
+      ctx.strokeStyle = '#c7d2fe'; ctx.lineWidth = 2.5; ctx.beginPath();
+      for (let i = 0; i <= 900; i++) { const t = X_MIN + (X_MAX - X_MIN) * i / 900; const gx = xToPx(t, left, gw); const gy = yToPx(Math.sin(t), top, plotHeight); i === 0 ? ctx.moveTo(gx, gy) : ctx.lineTo(gx, gy); }
+      ctx.stroke();
+      ctx.fillStyle = '#2563eb'; state.tracePoints.forEach(p => { const px = xToPx(p.theta, left, gw), py = yToPx(p.y, top, plotHeight); ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill(); });
+      const { theta, y } = getValues();
+      if (theta >= X_MIN && theta <= X_MAX) {
+        const cpx = xToPx(theta, left, gw), cpy = yToPx(y, top, plotHeight);
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 5]);
+        ctx.beginPath(); ctx.moveTo(0, cpy); ctx.lineTo(cpx, cpy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cpx, yToPx(0, top, plotHeight)); ctx.lineTo(cpx, cpy); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = '#dc2626'; ctx.beginPath(); ctx.arc(cpx, cpy, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#334155'; ctx.font = '15px HCR Batang, 함초롱바탕, serif'; ctx.fillText(`(${C.formatNum(theta)}, ${C.formatNum(y)})`, cpx + 10, cpy - 10);
+      }
+      ctx.fillStyle = '#64748b'; ctx.font = '14px HCR Batang, 함초롱바탕, serif'; ctx.fillText('누적된 점들이 사인 그래프를 만들어 간다.', left, h - 18);
+    }
+
+    function updateFromCirclePointer(event) {
+      const rect = circleCanvas.getBoundingClientRect();
+      const w = rect.width, h = rect.height;
+      const { cy } = C.getSharedVerticalGeometry(h);
+      const cx = w / 2;
+      const pos = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      const dx = pos.x - cx, dy = cy - pos.y;
+      if (Math.sqrt(dx * dx + dy * dy) < 20) return;
+      let baseDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+      if (baseDeg < 0) baseDeg += 360;
+      let nextDeg = C.nearestCoterminal(baseDeg, state.angleDeg);
+      nextDeg = Math.max(-180, Math.min(540, nextDeg));
+      setAngle(Math.round(nextDeg), true);
+    }
+
+    function render() {
+      updateOutputs();
+      drawCircleCanvas();
+      drawGraphCanvas();
+      C.postHeight('page5');
+    }
+
+    document.querySelectorAll('[data-angle]').forEach(btn => btn.addEventListener('click', () => setAngle(Number(btn.dataset.angle), true)));
+    clearBtn.addEventListener('click', () => { state.tracePoints = []; render(); });
+    circleCanvas.addEventListener('mousedown', event => { state.dragging = true; updateFromCirclePointer(event); });
+    window.addEventListener('mousemove', event => { if (state.dragging) updateFromCirclePointer(event); });
+    window.addEventListener('mouseup', () => { state.dragging = false; });
+    circleCanvas.addEventListener('mouseleave', () => { state.dragging = false; });
+    window.addEventListener('resize', render);
+    addTracePoint();
+    render();
+  </script>
+</body>
+</html>

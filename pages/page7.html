@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>7. 삼각함수의 그래프(탄젠트)</title>
+  <link rel="stylesheet" href="../assets/common.css" />
+  <style>
+    .info-grid.cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 900px) {
+      .info-grid.cols-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="lower-page">
+  <div class="inner">
+    <section class="hero-card">
+      <h1>7. 삼각함수의 그래프(탄젠트)</h1>
+      <p>단위원 위의 점 <strong>P</strong>를 움직이며 <strong>tan θ</strong>의 값을 확인하고, 그 값이 오른쪽 그래프에 어떻게 나타나는지 살펴봅니다.</p>
+      <p>탄젠트는 <strong>tan θ = y / x</strong> 이므로, <strong>x = 0</strong>인 각에서는 값이 정의되지 않습니다. 점근선 근처처럼 값이 너무 커지는 곳은 그림에서 생략할 수 있습니다.</p>
+    </section>
+
+    <section class="layout wide-left">
+      <section class="card">
+        <div class="head-block">
+          <h2>단위원</h2>
+          <p class="subtext compact">점 P를 직접 움직이거나 아래 버튼을 눌러 보세요.</p>
+        </div>
+
+        <button id="clearBtn" class="clear-btn">지우기</button>
+
+        <div class="canvas-wrap fixed-520">
+          <canvas id="circleCanvas"></canvas>
+        </div>
+
+        <div class="small-buttons">
+          <button data-angle="-180">-π</button>
+          <button data-angle="-90">-π/2</button>
+          <button data-angle="0">0</button>
+          <button data-angle="45">π/4</button>
+          <button data-angle="90">π/2</button>
+          <button data-angle="180">π</button>
+          <button data-angle="270">3π/2</button>
+          <button data-angle="360">2π</button>
+          <button data-angle="540">3π</button>
+        </div>
+
+        <div class="meta-card" id="stateBox"></div>
+      </section>
+
+      <section class="card">
+        <div class="head-block">
+          <h2>탄젠트 함수 그래프</h2>
+          <p class="subtext compact">x축은 θ, y축은 tan θ 입니다. 값이 정의되지 않는 곳과 너무 큰 곳은 그리지 않습니다.</p>
+        </div>
+
+        <div class="canvas-wrap fixed-520">
+          <canvas id="graphCanvas"></canvas>
+        </div>
+
+        <div class="info-grid cols-3">
+          <div class="info-item">
+            <div class="k">현재 θ (rad)</div>
+            <div class="v" id="radText">0</div>
+          </div>
+          <div class="info-item">
+            <div class="k">P의 좌표</div>
+            <div class="v" id="pointText">P(1, 0)</div>
+          </div>
+          <div class="info-item">
+            <div class="k">tan θ</div>
+            <div class="v" id="tanText">0</div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script src="../assets/common.js"></script>
+  <script>
+    const C = TrigCommon;
+
+    const state = {
+      angleDeg: 0,
+      dragging: false,
+      tracePoints: []
+    };
+
+    const circleCanvas = document.getElementById('circleCanvas');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const clearBtn = document.getElementById('clearBtn');
+
+    const stateBox = document.getElementById('stateBox');
+    const radText = document.getElementById('radText');
+    const pointText = document.getElementById('pointText');
+    const tanText = document.getElementById('tanText');
+
+    const X_MIN = -Math.PI;
+    const X_MAX = 3 * Math.PI;
+    const Y_MIN = -5;
+    const Y_MAX = 5;
+
+    const LEFT_TAN_DRAW_LIMIT = 2.1;
+    const RIGHT_POINT_DRAW_LIMIT = 4.8;
+
+    function getValues() {
+      const theta = C.toRad(state.angleDeg);
+      const reducedTheta = C.toRad(C.normalizeDeg(state.angleDeg));
+      const x = Math.cos(theta);
+      const y = Math.sin(theta);
+      const tan = Math.abs(x) < 1e-10 ? null : y / x;
+      return { theta, reducedTheta, x, y, tan };
+    }
+
+    function addTracePoint() {
+      const { theta, tan } = getValues();
+      if (theta < X_MIN || theta > X_MAX) return;
+
+      let value = null;
+      if (tan !== null && Math.abs(tan) <= RIGHT_POINT_DRAW_LIMIT) {
+        value = tan;
+      }
+
+      const last = state.tracePoints[state.tracePoints.length - 1];
+      if (!last || Math.abs(last.theta - theta) > 0.01 || last.value !== value) {
+        state.tracePoints.push({ theta, value });
+      }
+    }
+
+    function setAngle(newDeg, shouldTrace = true) {
+      if (!Number.isFinite(newDeg)) return;
+      state.angleDeg = Math.max(-180, Math.min(540, newDeg));
+      if (shouldTrace) addTracePoint();
+      render();
+    }
+
+    function xToPx(x, left, width) {
+      return left + (x - X_MIN) / (X_MAX - X_MIN) * width;
+    }
+
+    function yToPx(y, top, plotHeight) {
+      return top + (Y_MAX - y) / (Y_MAX - Y_MIN) * plotHeight;
+    }
+
+    function updateOutputs() {
+      const { theta, x, y, tan } = getValues();
+
+      radText.textContent = C.formatNum(theta);
+      pointText.textContent = `P(${C.formatNum(x)}, ${C.formatNum(y)})`;
+      tanText.textContent = tan === null ? '정의되지 않음' : C.formatNum(tan);
+
+      stateBox.innerHTML = `
+        <div><strong>현재각</strong> : ${C.formatNum(theta)} rad</div>
+        <div><strong>대표각</strong> : ${C.radToPiText(C.toRad(C.normalizeDeg(state.angleDeg)))}</div>
+        <div><strong>P의 좌표</strong> : (${C.formatNum(x)}, ${C.formatNum(y)})</div>
+        <div><strong>tan θ</strong> : ${tan === null ? '정의되지 않음' : C.formatNum(tan)}</div>
+      `;
+    }
+
+    function drawCircleCanvas() {
+      const { ctx, w, h } = C.resizeCanvas(circleCanvas);
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const base = C.getSharedVerticalGeometry(h);
+      const top = base.top;
+      const bottom = base.bottom;
+      const cy = base.cy;
+      const cx = w / 2;
+
+      const radius = Math.min(base.radius * 0.52, 110);
+
+      const { theta, reducedTheta, x, y, tan } = getValues();
+      const px = cx + radius * Math.cos(-reducedTheta);
+      const py = cy + radius * Math.sin(-reducedTheta);
+
+      const tangentX = cx + radius;
+      let tangentY = null;
+
+      const canDrawTangentPoint = tan !== null && Math.abs(tan) <= LEFT_TAN_DRAW_LIMIT;
+      if (canDrawTangentPoint) {
+        tangentY = cy - radius * tan;
+      }
+
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(cx - radius - 120, cy);
+      ctx.lineTo(cx + radius + 120, cy);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(cx, h - bottom);
+      ctx.lineTo(cx, top);
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      C.drawArrowHead(ctx, cx + radius + 102, cy, cx + radius + 120, cy, 9);
+      C.drawArrowHead(ctx, cx, top + 18, cx, top, 9);
+
+      ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('x', cx + radius + 130, cy + 6);
+      ctx.fillText('y', cx - 12, top - 12);
+      ctx.fillText('O', cx - 22, cy + 22);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + radius, cy);
+      ctx.stroke();
+
+      // OP
+      ctx.strokeStyle = '#7c3aed';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+
+      ctx.fillStyle = '#7c3aed';
+      C.drawArrowHead(
+        ctx,
+        cx + (radius - 14) * Math.cos(-reducedTheta),
+        cy + (radius - 14) * Math.sin(-reducedTheta),
+        px,
+        py,
+        10
+      );
+
+      // x=1 위치 수직 점선만 그림
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1.7;
+      ctx.setLineDash([6, 5]);
+      ctx.beginPath();
+      ctx.moveTo(tangentX, top);
+      ctx.lineTo(tangentX, h - bottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 2,3사분면에서는 O 방향으로, 1,4사분면에서는 P 방향으로 연장
+      if (canDrawTangentPoint) {
+        ctx.strokeStyle = '#7c3aed';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([7, 5]);
+        ctx.beginPath();
+
+        if (x >= 0) {
+          ctx.moveTo(px, py);
+        } else {
+          ctx.moveTo(cx, cy);
+        }
+
+        ctx.lineTo(tangentX, tangentY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (canDrawTangentPoint) {
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.arc(tangentX, tangentY, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(tangentX, cy);
+        ctx.lineTo(tangentX, tangentY);
+        ctx.stroke();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
+        ctx.fillText('T', tangentX + 10, tangentY - 8);
+        ctx.fillText('tan θ', tangentX + 12, (cy + tangentY) / 2);
+      }
+
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([6, 5]);
+
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px, cy);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(w, py);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 34, 0, -reducedTheta, theta >= 0);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 17px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('P', px + 10, py - 8);
+      ctx.fillText('θ', cx + 24, cy - 12);
+
+      ctx.fillStyle = '#334155';
+      ctx.font = '14px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText(`θ = ${C.radToPiText(theta)}`, 14, 26);
+
+      if (tan === null) {
+        ctx.fillText('tan θ = 정의되지 않음', 14, 50);
+      } else if (!canDrawTangentPoint) {
+        ctx.fillText(`tan θ = ${C.formatNum(tan)} (그림 생략)`, 14, 50);
+      } else {
+        ctx.fillText(`tan θ = ${C.formatNum(tan)}`, 14, 50);
+      }
+    }
+
+    function drawGraphCanvas() {
+      const { ctx, w, h } = C.resizeCanvas(graphCanvas);
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const left = 80;
+      const right = 30;
+      const top = 40;
+      const bottom = 60;
+      const gw = w - left - right;
+      const gh = h - top - bottom;
+
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+
+      [-Math.PI, 0, Math.PI, 2 * Math.PI, 3 * Math.PI].forEach(v => {
+        const px = xToPx(v, left, gw);
+        ctx.beginPath();
+        ctx.moveTo(px, top);
+        ctx.lineTo(px, top + gh);
+        ctx.stroke();
+      });
+
+      [-4, -2, 0, 2, 4].forEach(v => {
+        const py = yToPx(v, top, gh);
+        ctx.beginPath();
+        ctx.moveTo(left, py);
+        ctx.lineTo(left + gw, py);
+        ctx.stroke();
+      });
+
+      ctx.strokeStyle = '#fca5a5';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([6, 4]);
+      for (let k = -2; k <= 4; k++) {
+        const a = Math.PI / 2 + k * Math.PI;
+        if (a >= X_MIN && a <= X_MAX) {
+          const px = xToPx(a, left, gw);
+          ctx.beginPath();
+          ctx.moveTo(px, top);
+          ctx.lineTo(px, top + gh);
+          ctx.stroke();
+        }
+      }
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2.2;
+
+      ctx.beginPath();
+      ctx.moveTo(left, yToPx(0, top, gh));
+      ctx.lineTo(left + gw, yToPx(0, top, gh));
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(xToPx(0, left, gw), top + gh);
+      ctx.lineTo(xToPx(0, left, gw), top);
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      C.drawArrowHead(ctx, left + gw - 18, yToPx(0, top, gh), left + gw, yToPx(0, top, gh), 9);
+      C.drawArrowHead(ctx, xToPx(0, left, gw), top + 18, xToPx(0, left, gw), top, 9);
+
+      ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('-π', xToPx(-Math.PI, left, gw) - 10, yToPx(0, top, gh) + 28);
+      ctx.fillText('0', xToPx(0, left, gw) - 6, yToPx(0, top, gh) + 28);
+      ctx.fillText('π', xToPx(Math.PI, left, gw) - 6, yToPx(0, top, gh) + 28);
+      ctx.fillText('2π', xToPx(2 * Math.PI, left, gw) - 10, yToPx(0, top, gh) + 28);
+      ctx.fillText('3π', xToPx(3 * Math.PI, left, gw) - 10, yToPx(0, top, gh) + 28);
+
+      [-4, -2, 2, 4].forEach(v => {
+        ctx.fillText(String(v), xToPx(0, left, gw) + 10, yToPx(v, top, gh) + 6);
+      });
+
+      // 예비 곡선 더 흐리게
+      ctx.strokeStyle = 'rgba(124, 58, 237, 0.16)';
+      ctx.lineWidth = 3;
+      let active = false;
+
+      for (let i = 0; i <= 1800; i++) {
+        const x = X_MIN + (X_MAX - X_MIN) * i / 1800;
+        const cosX = Math.cos(x);
+        const tanX = Math.tan(x);
+
+        if (Math.abs(cosX) < 0.035 || Math.abs(tanX) > RIGHT_POINT_DRAW_LIMIT) {
+          if (active) {
+            ctx.stroke();
+            active = false;
+          }
+          continue;
+        }
+
+        const px = xToPx(x, left, gw);
+        const py = yToPx(tanX, top, gh);
+
+        if (!active) {
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          active = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      if (active) ctx.stroke();
+
+      ctx.fillStyle = '#2563eb';
+      state.tracePoints.forEach(p => {
+        if (p.value === null) return;
+        const px = xToPx(p.theta, left, gw);
+        const py = yToPx(p.value, top, gh);
+        ctx.beginPath();
+        ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const { theta, tan } = getValues();
+      if (theta >= X_MIN && theta <= X_MAX && tan !== null && Math.abs(tan) <= RIGHT_POINT_DRAW_LIMIT) {
+        const cpx = xToPx(theta, left, gw);
+        const cpy = yToPx(tan, top, gh);
+
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 5]);
+
+        ctx.beginPath();
+        ctx.moveTo(0, cpy);
+        ctx.lineTo(cpx, cpy);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(cpx, yToPx(0, top, gh));
+        ctx.lineTo(cpx, cpy);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.arc(cpx, cpy, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#334155';
+        ctx.font = '15px HCR Batang, 함초롱바탕, serif';
+        ctx.fillText(`(${C.formatNum(theta)}, ${C.formatNum(tan)})`, cpx + 10, cpy - 10);
+      }
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '14px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('점근선 근처처럼 값이 너무 큰 부분은 그래프에서 생략할 수 있다.', left, h - 18);
+    }
+
+    function getCanvasCoords(event, canvas) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function updateFromCirclePointer(event) {
+      const rect = circleCanvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const { cy } = C.getSharedVerticalGeometry(h);
+      const cx = w / 2;
+
+      const pos = getCanvasCoords(event, circleCanvas);
+      const dx = pos.x - cx;
+      const dy = cy - pos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 20) return;
+
+      let baseDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+      if (baseDeg < 0) baseDeg += 360;
+
+      let nextDeg = C.nearestCoterminal(baseDeg, state.angleDeg);
+      nextDeg = Math.max(-180, Math.min(540, nextDeg));
+      setAngle(Math.round(nextDeg), true);
+    }
+
+    function render() {
+      updateOutputs();
+      drawCircleCanvas();
+      drawGraphCanvas();
+      C.postHeight('page7');
+    }
+
+    document.querySelectorAll('[data-angle]').forEach(btn => {
+      btn.addEventListener('click', () => setAngle(Number(btn.dataset.angle), true));
+    });
+
+    clearBtn.addEventListener('click', () => {
+      state.tracePoints = [];
+      render();
+    });
+
+    circleCanvas.addEventListener('mousedown', event => {
+      state.dragging = true;
+      updateFromCirclePointer(event);
+    });
+
+    window.addEventListener('mousemove', event => {
+      if (state.dragging) updateFromCirclePointer(event);
+    });
+
+    window.addEventListener('mouseup', () => {
+      state.dragging = false;
+    });
+
+    circleCanvas.addEventListener('mouseleave', () => {
+      state.dragging = false;
+    });
+
+    window.addEventListener('resize', render);
+
+    addTracePoint();
+    render();
+  </script>
+</body>
+</html>
