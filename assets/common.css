@@ -61,7 +61,7 @@ body.lower-page {
 
 .nav-grid {
   display: grid;
-  grid-template-columns: repeat(9, minmax(120px, 1fr));
+  grid-template-columns: repeat(10, minmax(120px, 1fr));
   gap: 10px;
   margin-top: 16px;
 }
