@@ -126,7 +126,58 @@
       setupCanvasInteraction();
     }
 
-    function drawCanvas(angleDeg) {
+function drawMultiTurnArc(ctx, cx, cy, baseRadius, angleDeg, color) {
+  const absDeg = Math.abs(angleDeg);
+  if (absDeg < 0.01) return;
+
+  const dir = angleDeg >= 0 ? 1 : -1;   // 양수: 반시계, 음수: 시계
+  const stepDeg = 2;                    // 작을수록 더 부드러움
+  const growPerTurn = 10;               // 360° 돌 때마다 반지름 증가량
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+
+  // 시작점
+  let startRad = 0;
+  let startX = cx + baseRadius * Math.cos(startRad);
+  let startY = cy - baseRadius * Math.sin(startRad);
+  ctx.moveTo(startX, startY);
+
+  // 연속된 나선형 아크
+  for (let d = stepDeg; d <= absDeg; d += stepDeg) {
+    const sweepDeg = dir * d;
+    const r = baseRadius + growPerTurn * (d / 360);
+    const rad = C.toRad(sweepDeg);
+
+    const x = cx + r * Math.cos(rad);
+    const y = cy - r * Math.sin(rad);
+    ctx.lineTo(x, y);
+  }
+
+  // 마지막 점 정확히 맞추기
+  const finalR = baseRadius + growPerTurn * (absDeg / 360);
+  const finalRad = C.toRad(dir * absDeg);
+  const endX = cx + finalR * Math.cos(finalRad);
+  const endY = cy - finalR * Math.sin(finalRad);
+  ctx.lineTo(endX, endY);
+
+  ctx.stroke();
+
+  // 끝 화살표
+  const prevDeg = Math.max(0, absDeg - 8);
+  const prevR = baseRadius + growPerTurn * (prevDeg / 360);
+  const prevRad = C.toRad(dir * prevDeg);
+  const prevX = cx + prevR * Math.cos(prevRad);
+  const prevY = cy - prevR * Math.sin(prevRad);
+
+  ctx.fillStyle = color;
+  C.drawArrowHead(ctx, prevX, prevY, endX, endY, 8);
+
+  ctx.restore();
+}
+      function drawCanvas(angleDeg) {
       const canvas = document.getElementById('angleCanvas');
       const ctx = canvas.getContext('2d');
       const w = canvas.width, h = canvas.height;
@@ -177,7 +228,7 @@
       ctx.fillStyle = '#7c3aed';
       C.drawArrowHead(ctx, cx + (rayLen - 20) * Math.cos(-reducedRad), cy + (rayLen - 20) * Math.sin(-reducedRad), px, py, 12);
 
-      C.drawArc(ctx, cx, cy, 70, 0, -reducedRad, angleDeg >= 0, '#f59e0b');
+      drawMultiTurnArc(ctx, cx, cy, 35, angleDeg, '#f59e0b');
 
       ctx.fillStyle = '#7c3aed';
       ctx.font = 'bold 20px HCR Batang, 함초롱바탕, serif';
