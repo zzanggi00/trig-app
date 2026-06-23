@@ -176,7 +176,7 @@
       ctx.fillStyle = '#1f2937'; ctx.font = 'bold 20px HCR Batang, 함초롱바탕, serif';
       ctx.fillText('제1사분면', cx + 85, cy - 95); ctx.fillText('제2사분면', cx - 190, cy - 95); ctx.fillText('제3사분면', cx - 190, cy + 120); ctx.fillText('제4사분면', cx + 85, cy + 120);
       ctx.font = 'bold 18px HCR Batang, 함초롱바탕, serif';
-      [['#2563eb',110,-55,'sin +','cos +','tan +'],['#7c3aed',-165,-55,'sin +','cos -','tan -'],['#dc2626',-165,70,'sin -','cos -','tan +'],['#059669',110,70,'sin -','cos +','tan -']].forEach(([color,x,y,a,b,c])=>{
+      [['#2563eb',40,-70,'sin +','cos +','tan +'],['#7c3aed',-80,-70,'sin +','cos -','tan -'],['#dc2626',-80,30,'sin -','cos -','tan +'],['#059669',40,30,'sin -','cos +','tan -']].forEach(([color,x,y,a,b,c])=>{
         ctx.fillStyle = color; ctx.fillText(a, cx + x, cy + y); ctx.fillText(b, cx + x, cy + y + 30); ctx.fillText(c, cx + x, cy + y + 60);
       });
     }

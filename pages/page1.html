@@ -20,11 +20,6 @@
       </aside>
 
       <main class="viewer">
-        <div class="viewer-top">
-          <div>
-            <div class="formula">일반각</div>
-          </div>
-        </div>
         <div id="rightView"></div>
       </main>
     </section>
@@ -52,6 +47,7 @@
     function renderLeft() {
       const angle = state.angleDeg;
       const reduced = C.normalizeDeg(angle);
+
       leftPanel.innerHTML = `
         <div class="section">
           <label for="angleInput">각도 입력(도)</label>
@@ -76,6 +72,7 @@
             <button data-angle="-1020">60°-360°×3</button>
           </div>
         </div>
+
         <div class="section">
           <label>현재 각의 해석</label>
           <div class="meta-card">
@@ -84,6 +81,7 @@
             <div><strong>현재 각의 분해</strong> : ${generalAngleDescription(angle)}</div>
           </div>
         </div>
+
         <div class="section">
           <label>조작 안내</label>
           <div class="meta-card">왼쪽 입력창, 슬라이더, 오른쪽 그림의 동경 OP 끝점을 모두 이용해 각도를 바꿀 수 있습니다.</div>
@@ -95,26 +93,44 @@
         state.angleDeg = (raw === '' || raw === '-') ? 0 : Number(raw);
         render();
       });
+
       document.getElementById('angleSlider').addEventListener('input', e => {
         state.angleDeg = Number(e.target.value);
         render();
       });
-      document.querySelectorAll('[data-angle]').forEach(btn => btn.addEventListener('click', () => {
-        state.angleDeg = Number(btn.dataset.angle);
-        render();
-      }));
+
+      document.querySelectorAll('[data-angle]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.angleDeg = Number(btn.dataset.angle);
+          render();
+        });
+      });
     }
 
     function renderRight() {
       const angle = state.angleDeg;
       const reduced = C.normalizeDeg(angle);
+
       rightView.innerHTML = `
-        <div class="canvas-wrap ratio-16-9"><canvas id="angleCanvas" width="1000" height="560"></canvas></div>
-        <div class="info-grid cols-3">
-          <div class="info-item"><div class="k">입력한 일반각</div><div class="v">${angle}°</div></div>
-          <div class="info-item"><div class="k">같은 동경의 대표각<br>0° ≤ α &lt; 360°</div><div class="v">${reduced}°</div></div>
-          <div class="info-item"><div class="k">같은 동경의 예</div><div class="v" style="font-size:14px; line-height:1.5;">${reduced}°, ${reduced + 360}°, ${reduced - 360}°</div></div>
+        <div class="canvas-wrap ratio-16-9">
+          <canvas id="angleCanvas" width="1000" height="560"></canvas>
         </div>
+
+        <div class="info-grid cols-3">
+          <div class="info-item">
+            <div class="k">입력한 일반각</div>
+            <div class="v">${angle}°</div>
+          </div>
+          <div class="info-item">
+            <div class="k">같은 동경의 대표각<br>0° ≤ α &lt; 360°</div>
+            <div class="v">${reduced}°</div>
+          </div>
+          <div class="info-item">
+            <div class="k">같은 동경의 예</div>
+            <div class="v" style="font-size:14px; line-height:1.5;">${reduced}°, ${reduced + 360}°, ${reduced - 360}°</div>
+          </div>
+        </div>
+
         <div class="explain-box" style="border:2px solid #c7d2fe; background:#eef2ff;">
           <strong style="font-size:16px; color:#3730a3;">현재 입력 각의 구조</strong><br>
           <div style="margin-top:8px; font-size:18px; font-weight:800; color:#1e3a8a;">${generalAngleDescription(angle)}</div><br>
@@ -122,71 +138,74 @@
           ${reduced}° = ${reduced + 360}° = ${reduced - 360}° = ${reduced + 720}° = ${reduced - 1080}°
         </div>
       `;
+
       drawCanvas(angle);
       setupCanvasInteraction();
     }
 
-function drawMultiTurnArc(ctx, cx, cy, baseRadius, angleDeg, color) {
-  const absDeg = Math.abs(angleDeg);
-  if (absDeg < 0.01) return;
+    function drawMultiTurnArc(ctx, cx, cy, baseRadius, angleDeg, color) {
+      const absDeg = Math.abs(angleDeg);
+      if (absDeg < 0.01) return;
 
-  const dir = angleDeg >= 0 ? 1 : -1;   // 양수: 반시계, 음수: 시계
-  const stepDeg = 2;                    // 작을수록 더 부드러움
-  const growPerTurn = 10;               // 360° 돌 때마다 반지름 증가량
+      const dir = angleDeg >= 0 ? 1 : -1;
+      const stepDeg = 2;
+      const growPerTurn = 10;
 
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 4;
-  ctx.beginPath();
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
 
-  // 시작점
-  let startRad = 0;
-  let startX = cx + baseRadius * Math.cos(startRad);
-  let startY = cy - baseRadius * Math.sin(startRad);
-  ctx.moveTo(startX, startY);
+      const startRad = 0;
+      const startX = cx + baseRadius * Math.cos(startRad);
+      const startY = cy - baseRadius * Math.sin(startRad);
+      ctx.moveTo(startX, startY);
 
-  // 연속된 나선형 아크
-  for (let d = stepDeg; d <= absDeg; d += stepDeg) {
-    const sweepDeg = dir * d;
-    const r = baseRadius + growPerTurn * (d / 360);
-    const rad = C.toRad(sweepDeg);
+      for (let d = stepDeg; d <= absDeg; d += stepDeg) {
+        const sweepDeg = dir * d;
+        const r = baseRadius + growPerTurn * (d / 360);
+        const rad = C.toRad(sweepDeg);
 
-    const x = cx + r * Math.cos(rad);
-    const y = cy - r * Math.sin(rad);
-    ctx.lineTo(x, y);
-  }
+        const x = cx + r * Math.cos(rad);
+        const y = cy - r * Math.sin(rad);
+        ctx.lineTo(x, y);
+      }
 
-  // 마지막 점 정확히 맞추기
-  const finalR = baseRadius + growPerTurn * (absDeg / 360);
-  const finalRad = C.toRad(dir * absDeg);
-  const endX = cx + finalR * Math.cos(finalRad);
-  const endY = cy - finalR * Math.sin(finalRad);
-  ctx.lineTo(endX, endY);
+      const finalR = baseRadius + growPerTurn * (absDeg / 360);
+      const finalRad = C.toRad(dir * absDeg);
+      const endX = cx + finalR * Math.cos(finalRad);
+      const endY = cy - finalR * Math.sin(finalRad);
+      ctx.lineTo(endX, endY);
 
-  ctx.stroke();
+      ctx.stroke();
 
-  // 끝 화살표
-  const prevDeg = Math.max(0, absDeg - 8);
-  const prevR = baseRadius + growPerTurn * (prevDeg / 360);
-  const prevRad = C.toRad(dir * prevDeg);
-  const prevX = cx + prevR * Math.cos(prevRad);
-  const prevY = cy - prevR * Math.sin(prevRad);
+      const prevDeg = Math.max(0, absDeg - 8);
+      const prevR = baseRadius + growPerTurn * (prevDeg / 360);
+      const prevRad = C.toRad(dir * prevDeg);
+      const prevX = cx + prevR * Math.cos(prevRad);
+      const prevY = cy - prevR * Math.sin(prevRad);
 
-  ctx.fillStyle = color;
-  C.drawArrowHead(ctx, prevX, prevY, endX, endY, 8);
+      ctx.fillStyle = color;
+      C.drawArrowHead(ctx, prevX, prevY, endX, endY, 8);
 
-  ctx.restore();
-}
-      function drawCanvas(angleDeg) {
+      ctx.restore();
+    }
+
+    function drawCanvas(angleDeg) {
       const canvas = document.getElementById('angleCanvas');
       const ctx = canvas.getContext('2d');
-      const w = canvas.width, h = canvas.height;
+      const w = canvas.width;
+      const h = canvas.height;
+
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, w, h);
 
-      const cx = w * 0.43, cy = h * 0.56;
-      const axisLen = 260, rayLen = 220, circleR = 120;
+      const cx = w * 0.43;
+      const cy = h * 0.56;
+      const axisLen = 260;
+      const rayLen = 220;
+      const circleR = 120;
       const reducedDeg = C.normalizeDeg(angleDeg);
       const reducedRad = C.toRad(reducedDeg);
 
@@ -199,9 +218,14 @@ function drawMultiTurnArc(ctx, cx, cy, baseRadius, angleDeg, color) {
       ctx.strokeStyle = '#111827';
       ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.moveTo(cx - axisLen, cy); ctx.lineTo(cx + axisLen, cy); ctx.stroke();
+      ctx.moveTo(cx - axisLen, cy);
+      ctx.lineTo(cx + axisLen, cy);
+      ctx.stroke();
+
       ctx.beginPath();
-      ctx.moveTo(cx, cy + axisLen * 0.8); ctx.lineTo(cx, cy - axisLen * 0.8); ctx.stroke();
+      ctx.moveTo(cx, cy + axisLen * 0.8);
+      ctx.lineTo(cx, cy - axisLen * 0.8);
+      ctx.stroke();
 
       ctx.fillStyle = '#111827';
       C.drawArrowHead(ctx, cx + axisLen - 20, cy, cx + axisLen, cy, 11);
@@ -216,17 +240,33 @@ function drawMultiTurnArc(ctx, cx, cy, baseRadius, angleDeg, color) {
 
       ctx.strokeStyle = '#2563eb';
       ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + rayLen, cy); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + rayLen, cy);
+      ctx.stroke();
+
       ctx.fillStyle = '#2563eb';
       C.drawArrowHead(ctx, cx + rayLen - 20, cy, cx + rayLen, cy, 12);
 
       const px = cx + rayLen * Math.cos(-reducedRad);
       const py = cy + rayLen * Math.sin(-reducedRad);
+
       ctx.strokeStyle = '#7c3aed';
       ctx.lineWidth = 5;
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+
       ctx.fillStyle = '#7c3aed';
-      C.drawArrowHead(ctx, cx + (rayLen - 20) * Math.cos(-reducedRad), cy + (rayLen - 20) * Math.sin(-reducedRad), px, py, 12);
+      C.drawArrowHead(
+        ctx,
+        cx + (rayLen - 20) * Math.cos(-reducedRad),
+        cy + (rayLen - 20) * Math.sin(-reducedRad),
+        px,
+        py,
+        12
+      );
 
       drawMultiTurnArc(ctx, cx, cy, 35, angleDeg, '#f59e0b');
 
@@ -247,12 +287,16 @@ function drawMultiTurnArc(ctx, cx, cy, baseRadius, angleDeg, color) {
       ctx.strokeStyle = '#cbd5e1';
       ctx.lineWidth = 1;
       ctx.setLineDash([6, 6]);
-      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, cy); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px, cy);
+      ctx.stroke();
       ctx.setLineDash([]);
 
       ctx.fillStyle = '#334155';
       ctx.font = '15px HCR Batang, 함초롱바탕, serif';
       ctx.fillText(`현재 동경은 ${reducedDeg}° 방향과 일치`, 40, 178);
+
       const ex = coterminalExamples(reducedDeg);
       ctx.fillText('같은 동경의 예:', 40, 216);
       ctx.fillText(`${ex[0]}°, ${ex[1]}°, ${ex[2]}°, ${ex[3]}°, ${ex[4]}°`, 40, 244);
@@ -265,8 +309,10 @@ function drawMultiTurnArc(ctx, cx, cy, baseRadius, angleDeg, color) {
 
       const updateFromPointer = (event) => {
         const pos = C.getCanvasCoords(event, canvas);
-        const dx = pos.x - cx, dy = pos.y - cy;
+        const dx = pos.x - cx;
+        const dy = pos.y - cy;
         if (Math.sqrt(dx * dx + dy * dy) < 35) return;
+
         const baseDeg = C.canvasAngleToDegree(pos.x, pos.y, cx, cy);
         state.angleDeg = Math.round(C.nearestCoterminal(baseDeg, state.angleDeg));
         render();
@@ -276,11 +322,18 @@ function drawMultiTurnArc(ctx, cx, cy, baseRadius, angleDeg, color) {
         state.dragging = true;
         updateFromPointer(event);
       });
+
       canvas.addEventListener('mousemove', event => {
         if (state.dragging) updateFromPointer(event);
       });
-      window.addEventListener('mouseup', () => { state.dragging = false; }, { once: true });
-      canvas.addEventListener('mouseleave', () => { state.dragging = false; });
+
+      window.addEventListener('mouseup', () => {
+        state.dragging = false;
+      }, { once: true });
+
+      canvas.addEventListener('mouseleave', () => {
+        state.dragging = false;
+      });
     }
 
     function render() {

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>test5 - 사인 함수 테스트</title>
+  <link rel="stylesheet" href="../assets/common.css" />
+  <style>
+    .inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .primary-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .question-card {
+      border: 1px solid #e7eef7;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: #fcfdff;
+    }
+
+    .question-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .q-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: #111827;
+      line-height: 1.6;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: white;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      line-height: 1.5;
+    }
+
+    .option-label:hover {
+      background: #f8fafc;
+      border-color: #bfdbfe;
+    }
+
+    .option-label input {
+      margin: 0;
+      transform: scale(1.1);
+      flex: 0 0 auto;
+    }
+
+    .graph-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .graph-option {
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      padding: 10px;
+      background: white;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .graph-option:hover {
+      background: #f8fafc;
+      border-color: #bfdbfe;
+    }
+
+    .graph-option input {
+      margin-bottom: 8px;
+      transform: scale(1.1);
+    }
+
+    .graph-box {
+      width: 100%;
+      height: 150px;
+      border: 1px solid #e5edf6;
+      border-radius: 12px;
+      background: white;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .graph-box canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .graph-name {
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .result-box {
+      margin-top: 16px;
+      min-height: 64px;
+    }
+
+    .result-box.pass {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #065f46;
+    }
+
+    .result-box.fail {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+
+    .mini-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+      line-height: 1.7;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.38);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(560px, 100%);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+    }
+
+    .modal-card h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    .modal-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+
+    .check-item {
+      border: 1px solid #e5edf6;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fcfdff;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .check-item.correct {
+      border-color: #a7f3d0;
+      background: #ecfdf5;
+    }
+
+    .check-item.wrong {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .check-mark {
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .check-item.correct .check-mark {
+      color: var(--ok);
+    }
+
+    .check-item.wrong .check-mark {
+      color: var(--warn);
+    }
+
+    .modal-btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .close-note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      display: none;
+    }
+
+    code {
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.96em;
+    }
+
+    @media (max-width: 900px) {
+      .graph-options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="inner">
+    <section class="hero-card">
+      <h1>사인 함수 테스트</h1>
+      <p>문제는 매번 새롭게 생성됩니다. 2문제를 모두 맞혀야 통과입니다.</p>
+    </section>
+
+    <section class="layout">
+      <section class="card">
+        <div class="top-row">
+          <div>
+            <span class="pill">test5</span>
+          </div>
+          <div class="btn-row">
+            <button id="newQuizBtn">새 문제 만들기</button>
+            <button id="gradeBtn" class="primary-btn">채점하기</button>
+          </div>
+        </div>
+
+        <div id="quizArea"></div>
+
+        <div id="resultBox" class="result-box">
+          문제를 풀고 <strong>채점하기</strong>를 누르세요.
+        </div>
+
+      </section>
+    </section>
+  </div>
+
+  <div id="resultModal" class="modal-backdrop">
+    <div class="modal-card">
+      <h2 id="modalTitle">채점 결과</h2>
+      <p id="modalSummary">결과를 확인하세요.</p>
+      <div id="checkList" class="check-list"></div>
+      <div class="modal-btn-row">
+        <button id="retryBtn" class="primary-btn">다시 풀기</button>
+        <button id="closeBtn">그만하고 창 닫기</button>
+      </div>
+      <div id="closeNote" class="close-note">
+        브라우저 설정에 따라 창이 자동으로 닫히지 않을 수 있습니다. 그런 경우 창을 직접 닫아 주세요.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      questions: []
+    };
+
+    const quizArea = document.getElementById('quizArea');
+    const resultBox = document.getElementById('resultBox');
+    const newQuizBtn = document.getElementById('newQuizBtn');
+    const gradeBtn = document.getElementById('gradeBtn');
+
+    const resultModal = document.getElementById('resultModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSummary = document.getElementById('modalSummary');
+    const checkList = document.getElementById('checkList');
+    const retryBtn = document.getElementById('retryBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const closeNote = document.getElementById('closeNote');
+
+    const specialAngles = [
+      { angle: '0', value: '0' },
+      { angle: 'π/6', value: '1/2' },
+      { angle: 'π/4', value: '√2/2' },
+      { angle: 'π/3', value: '√3/2' },
+      { angle: 'π/2', value: '1' },
+      { angle: '2π/3', value: '√3/2' },
+      { angle: '3π/4', value: '√2/2' },
+      { angle: '5π/6', value: '1/2' },
+      { angle: 'π', value: '0' },
+      { angle: '7π/6', value: '-1/2' },
+      { angle: '5π/4', value: '-√2/2' },
+      { angle: '4π/3', value: '-√3/2' },
+      { angle: '3π/2', value: '-1' },
+      { angle: '5π/3', value: '-√3/2' },
+      { angle: '7π/4', value: '-√2/2' },
+      { angle: '11π/6', value: '-1/2' },
+      { angle: '2π', value: '0' }
+    ];
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function sampleOne(arr) {
+      return arr[randInt(0, arr.length - 1)];
+    }
+
+    function makeQuestion1() {
+      const item = sampleOne(specialAngles);
+      const correct = item.value;
+      const pool = ['0', '1/2', '√2/2', '√3/2', '1', '-1/2', '-√2/2', '-√3/2', '-1'];
+      const wrongs = shuffle(pool.filter(v => v !== correct)).slice(0, 3);
+      const options = shuffle([correct, ...wrongs]);
+
+      return {
+        kind: 'value',
+        prompt: `문제 1. sin ${item.angle} 의 값은 무엇인가?`,
+        options,
+        answer: options.indexOf(correct)
+      };
+    }
+
+    function makeQuestion2() {
+      const graphTypes = shuffle(['sin', 'cos', 'tan']);
+      return {
+        kind: 'graph',
+        prompt: '문제 2. 다음 중 sin 함수의 그래프를 고르시오.',
+        options: graphTypes,
+        answer: graphTypes.indexOf('sin')
+      };
+    }
+
+    function buildQuiz() {
+      state.questions = [
+        makeQuestion1(),
+        makeQuestion2()
+      ];
+
+      renderQuiz();
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '문제가 새로 생성되었습니다. 2문제를 모두 풀고 <strong>채점하기</strong>를 누르세요.';
+      hideModal();
+      localStorage.removeItem('test5Passed');
+    }
+
+    function renderQuiz() {
+      quizArea.innerHTML = state.questions.map((q, qIndex) => {
+        if (q.kind === 'graph') {
+          const graphHtml = q.options.map((opt, optIndex) => {
+            return `
+              <label class="graph-option">
+                <input type="radio" name="q${qIndex}" value="${optIndex}">
+                <span class="graph-name">그래프 ${optIndex + 1}</span>
+                <div class="graph-box">
+                  <canvas id="graphCanvas_${qIndex}_${optIndex}" width="220" height="150"></canvas>
+                </div>
+              </label>
+            `;
+          }).join('');
+
+          return `
+            <div class="question-card">
+              <div class="q-title">${q.prompt}</div>
+              <div class="graph-options">${graphHtml}</div>
+            </div>
+          `;
+        }
+
+        const optionsHtml = q.options.map((opt, optIndex) => {
+          return `
+            <label class="option-label">
+              <input type="radio" name="q${qIndex}" value="${optIndex}">
+              <span>${optIndex + 1}. ${opt}</span>
+            </label>
+          `;
+        }).join('');
+
+        return `
+          <div class="question-card">
+            <div class="q-title">${q.prompt}</div>
+            <div class="options">${optionsHtml}</div>
+          </div>
+        `;
+      }).join('');
+
+      drawGraphQuestion();
+    }
+
+    function drawGraphQuestion() {
+      const qIndex = 1;
+      const q = state.questions[qIndex];
+      if (!q || q.kind !== 'graph') return;
+
+      q.options.forEach((type, optIndex) => {
+        const canvas = document.getElementById(`graphCanvas_${qIndex}_${optIndex}`);
+        if (!canvas) return;
+        drawTrigGraph(canvas, type);
+      });
+    }
+
+    function drawTrigGraph(canvas, type) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const left = 24;
+      const right = w - 10;
+      const top = 14;
+      const bottom = h - 18;
+      const midY = (top + bottom) / 2;
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, midY);
+      ctx.lineTo(right, midY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(left, bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = '#475569';
+      ctx.font = '12px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('0', left - 10, midY + 14);
+      ctx.fillText('2π', right - 12, midY + 14);
+
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      let started = false;
+      for (let px = left; px <= right; px++) {
+        const t = (px - left) / (right - left);
+        const x = t * Math.PI * 2;
+
+        let yVal;
+        if (type === 'sin') yVal = Math.sin(x);
+        if (type === 'cos') yVal = Math.cos(x);
+        if (type === 'tan') yVal = Math.tan(x);
+
+        if (type === 'tan' && Math.abs(yVal) > 3) {
+          started = false;
+          continue;
+        }
+
+        const scaleY = (bottom - top) * 0.32;
+        const py = midY - yVal * scaleY;
+
+        if (!started) {
+          ctx.moveTo(px, py);
+          started = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+    }
+
+    function getUserAnswers() {
+      const answers = [];
+
+      for (let i = 0; i < state.questions.length; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) return null;
+        answers.push(Number(selected.value));
+      }
+
+      return answers;
+    }
+
+    function showModal(items, passed) {
+      modalTitle.textContent = passed ? '통과했습니다' : '다시 풀어야 합니다';
+      modalSummary.innerHTML = passed
+        ? '2문제를 모두 맞혔습니다. 결과를 확인한 뒤 창을 닫거나 다시 풀 수 있습니다.'
+        : '문제별 결과를 확인해 보세요. 2문제를 모두 맞혀야 통과입니다.';
+
+      checkList.innerHTML = items.map(item => {
+        return `
+          <div class="check-item ${item.correct ? 'correct' : 'wrong'}">
+            <span class="check-mark">${item.correct ? '정답' : '오답'}</span>
+            <strong>${item.label}</strong><br>
+            ${item.detail}
+          </div>
+        `;
+      }).join('');
+
+      closeNote.style.display = 'none';
+      resultModal.classList.add('show');
+    }
+
+    function hideModal() {
+      resultModal.classList.remove('show');
+    }
+
+    function gradeQuiz() {
+      const userAnswers = getUserAnswers();
+
+      if (!userAnswers) {
+        resultBox.className = 'result-box fail';
+        resultBox.innerHTML = '아직 선택하지 않은 문제가 있습니다. 2문제를 모두 답한 뒤 채점하세요.';
+        return;
+      }
+
+      const items = [];
+      let correctCount = 0;
+
+      for (let i = 0; i < state.questions.length; i++) {
+        const q = state.questions[i];
+        const correct = userAnswers[i] === q.answer;
+        if (correct) correctCount++;
+
+        const userText = q.kind === 'graph'
+          ? `그래프 ${userAnswers[i] + 1}`
+          : q.options[userAnswers[i]];
+
+        const correctText = q.kind === 'graph'
+          ? `그래프 ${q.answer + 1}`
+          : q.options[q.answer];
+
+        items.push({
+          label: `${i + 1}번 문제`,
+          correct,
+          detail: correct
+            ? `선택한 답: <strong>${userText}</strong>`
+            : `선택한 답: <strong>${userText}</strong><br>정답: <strong>${correctText}</strong>`
+        });
+      }
+
+      const passed = correctCount === 2;
+
+      if (passed) {
+        resultBox.className = 'result-box pass';
+        resultBox.innerHTML = '축하합니다. <strong>2문제를 모두 맞혀 통과했습니다.</strong>';
+        localStorage.setItem('test5Passed', 'true');
+
+        try {
+          if (window.opener && window.opener !== window) {
+            window.opener.postMessage({ type: 'testPassed', testId: 'test5' }, '*');
+          }
+        } catch (e) {}
+      } else {
+        resultBox.className = 'result-box fail';
+        resultBox.innerHTML = `<strong>${correctCount}문제 정답</strong>입니다. 문제별 결과를 확인한 뒤 다시 풀 수 있습니다.`;
+        localStorage.removeItem('test5Passed');
+      }
+
+      showModal(items, passed);
+    }
+
+    function retryQuiz() {
+      buildQuiz();
+    }
+
+    function closeWindowSafely() {
+      window.close();
+
+      setTimeout(() => {
+        if (!window.closed) {
+          closeNote.style.display = 'block';
+        }
+      }, 300);
+    }
+
+    newQuizBtn.addEventListener('click', buildQuiz);
+    gradeBtn.addEventListener('click', gradeQuiz);
+    retryBtn.addEventListener('click', retryQuiz);
+    closeBtn.addEventListener('click', closeWindowSafely);
+
+    window.addEventListener('load', buildQuiz);
+  </script>
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>test2 - 호도법과 육십분법 테스트</title>
+  <link rel="stylesheet" href="../assets/common.css" />
+  <style>
+    .inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .primary-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .question-card {
+      border: 1px solid #e7eef7;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: #fcfdff;
+    }
+
+    .question-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .q-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: #111827;
+      line-height: 1.6;
+    }
+
+    .q-sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: white;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      line-height: 1.5;
+    }
+
+    .option-label:hover {
+      background: #f8fafc;
+      border-color: #bfdbfe;
+    }
+
+    .option-label input {
+      margin: 0;
+      transform: scale(1.1);
+    }
+
+    .result-box {
+      margin-top: 16px;
+      min-height: 64px;
+    }
+
+    .result-box.pass {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #065f46;
+    }
+
+    .result-box.fail {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+
+    .mini-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+      line-height: 1.7;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.38);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(560px, 100%);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+    }
+
+    .modal-card h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    .modal-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+
+    .check-item {
+      border: 1px solid #e5edf6;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fcfdff;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .check-item.correct {
+      border-color: #a7f3d0;
+      background: #ecfdf5;
+    }
+
+    .check-item.wrong {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .check-mark {
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .check-item.correct .check-mark {
+      color: var(--ok);
+    }
+
+    .check-item.wrong .check-mark {
+      color: var(--warn);
+    }
+
+    .modal-btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .close-note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      display: none;
+    }
+
+    code {
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.96em;
+    }
+  </style>
+</head>
+<body>
+  <div class="inner">
+    <section class="hero-card">
+      <h1>호도법과 육십분법 테스트</h1>
+      <p>문제는 매번 새롭게 생성됩니다. 3문제를 모두 맞혀야 통과입니다.</p>
+    </section>
+
+    <section class="layout">
+      <section class="card">
+        <div class="top-row">
+          <div>
+            <span class="pill">test2</span>
+          </div>
+          <div class="btn-row">
+            <button id="newQuizBtn">새 문제 만들기</button>
+            <button id="gradeBtn" class="primary-btn">채점하기</button>
+          </div>
+        </div>
+
+        <div id="quizArea"></div>
+
+        <div id="resultBox" class="result-box">
+          문제를 풀고 <strong>채점하기</strong>를 누르세요.
+        </div>
+
+      </section>
+    </section>
+  </div>
+
+  <div id="resultModal" class="modal-backdrop">
+    <div class="modal-card">
+      <h2 id="modalTitle">채점 결과</h2>
+      <p id="modalSummary">결과를 확인하세요.</p>
+      <div id="checkList" class="check-list"></div>
+      <div class="modal-btn-row">
+        <button id="retryBtn" class="primary-btn">다시 풀기</button>
+        <button id="closeBtn">그만하고 창 닫기</button>
+      </div>
+      <div id="closeNote" class="close-note">
+        브라우저 설정에 따라 창이 자동으로 닫히지 않을 수 있습니다. 그런 경우 창을 직접 닫아 주세요.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      questions: []
+    };
+
+    const quizArea = document.getElementById('quizArea');
+    const resultBox = document.getElementById('resultBox');
+    const newQuizBtn = document.getElementById('newQuizBtn');
+    const gradeBtn = document.getElementById('gradeBtn');
+
+    const resultModal = document.getElementById('resultModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSummary = document.getElementById('modalSummary');
+    const checkList = document.getElementById('checkList');
+    const retryBtn = document.getElementById('retryBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const closeNote = document.getElementById('closeNote');
+
+    const specialAngles0to360 = [
+      { deg: 0, rad: '0' },
+      { deg: 30, rad: 'π/6' },
+      { deg: 45, rad: 'π/4' },
+      { deg: 60, rad: 'π/3' },
+      { deg: 90, rad: 'π/2' },
+      { deg: 120, rad: '2π/3' },
+      { deg: 135, rad: '3π/4' },
+      { deg: 150, rad: '5π/6' },
+      { deg: 180, rad: 'π' },
+      { deg: 210, rad: '7π/6' },
+      { deg: 225, rad: '5π/4' },
+      { deg: 240, rad: '4π/3' },
+      { deg: 270, rad: '3π/2' },
+      { deg: 300, rad: '5π/3' },
+      { deg: 315, rad: '7π/4' },
+      { deg: 330, rad: '11π/6' },
+      { deg: 360, rad: '2π' }
+    ];
+
+    const specialAngles360to720 = [
+      { deg: 360, rad: '2π' },
+      { deg: 390, rad: '13π/6' },
+      { deg: 405, rad: '9π/4' },
+      { deg: 420, rad: '7π/3' },
+      { deg: 450, rad: '5π/2' },
+      { deg: 480, rad: '8π/3' },
+      { deg: 495, rad: '11π/4' },
+      { deg: 510, rad: '17π/6' },
+      { deg: 540, rad: '3π' },
+      { deg: 570, rad: '19π/6' },
+      { deg: 585, rad: '13π/4' },
+      { deg: 600, rad: '10π/3' },
+      { deg: 630, rad: '7π/2' },
+      { deg: 660, rad: '11π/3' },
+      { deg: 675, rad: '15π/4' },
+      { deg: 690, rad: '23π/6' },
+      { deg: 720, rad: '4π' }
+    ];
+
+    const specialAnglesMinus360to0 = [
+      { deg: -360, rad: '-2π' },
+      { deg: -330, rad: '-11π/6' },
+      { deg: -315, rad: '-7π/4' },
+      { deg: -300, rad: '-5π/3' },
+      { deg: -270, rad: '-3π/2' },
+      { deg: -240, rad: '-4π/3' },
+      { deg: -225, rad: '-5π/4' },
+      { deg: -210, rad: '-7π/6' },
+      { deg: -180, rad: '-π' },
+      { deg: -150, rad: '-5π/6' },
+      { deg: -135, rad: '-3π/4' },
+      { deg: -120, rad: '-2π/3' },
+      { deg: -90, rad: '-π/2' },
+      { deg: -60, rad: '-π/3' },
+      { deg: -45, rad: '-π/4' },
+      { deg: -30, rad: '-π/6' },
+      { deg: 0, rad: '0' }
+    ];
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function sampleOne(arr) {
+      return arr[randInt(0, arr.length - 1)];
+    }
+
+    function pickWrongOptions(pool, correctItem, askType) {
+      const filtered = pool.filter(item => item.deg !== correctItem.deg);
+      const shuffled = shuffle(filtered).slice(0, 3);
+
+      if (askType === 'degToRad') {
+        return shuffled.map(item => item.rad);
+      }
+      return shuffled.map(item => `${item.deg}도`);
+    }
+
+    function makeQuestion(no, pool) {
+      const item = sampleOne(pool);
+      const askType = Math.random() < 0.5 ? 'degToRad' : 'radToDeg';
+
+      let prompt = '';
+      let correctText = '';
+      let wrongTexts = [];
+
+      if (askType === 'degToRad') {
+        prompt = `문제 ${no}. 다음 육십분법을 호도법으로 나타낸 것은?<br><strong>${item.deg}도</strong>`;
+        correctText = item.rad;
+        wrongTexts = pickWrongOptions(pool, item, askType);
+      } else {
+        prompt = `문제 ${no}. 다음 호도법을 육십분법으로 나타낸 것은?<br><strong>${item.rad}</strong>`;
+        correctText = `${item.deg}도`;
+        wrongTexts = pickWrongOptions(pool, item, askType);
+      }
+
+      const options = shuffle([correctText, ...wrongTexts]);
+      const answer = options.indexOf(correctText);
+
+      return {
+        prompt,
+        options,
+        answer
+      };
+    }
+
+    function buildQuiz() {
+      state.questions = [
+        makeQuestion(1, specialAngles0to360),
+        makeQuestion(2, specialAngles360to720),
+        makeQuestion(3, specialAnglesMinus360to0)
+      ];
+
+      renderQuiz();
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '문제가 새로 생성되었습니다. 3문제를 모두 풀고 <strong>채점하기</strong>를 누르세요.';
+      hideModal();
+      localStorage.removeItem('test2Passed');
+    }
+
+    function renderQuiz() {
+      quizArea.innerHTML = state.questions.map((q, qIndex) => {
+        const optionsHtml = q.options.map((opt, optIndex) => {
+          return `
+            <label class="option-label">
+              <input type="radio" name="q${qIndex}" value="${optIndex}">
+              <span>${optIndex + 1}. ${opt}</span>
+            </label>
+          `;
+        }).join('');
+
+        return `
+          <div class="question-card">
+            <div class="q-title">${q.prompt}</div>
+            <div class="options">${optionsHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getUserAnswers() {
+      const answers = [];
+
+      for (let i = 0; i < state.questions.length; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) return null;
+        answers.push(Number(selected.value));
+      }
+
+      return answers;
+    }
+
+    function showModal(items, passed) {
+      modalTitle.textContent = passed ? '통과했습니다' : '다시 풀어야 합니다';
+      modalSummary.innerHTML = passed
+        ? '3문제를 모두 맞혔습니다. 결과를 확인한 뒤 창을 닫거나 다시 풀 수 있습니다.'
+        : '문제별 결과를 확인해 보세요. 3문제를 모두 맞혀야 통과입니다.';
+
+      checkList.innerHTML = items.map(item => {
+        return `
+          <div class="check-item ${item.correct ? 'correct' : 'wrong'}">
+            <span class="check-mark">${item.correct ? '정답' : '오답'}</span>
+            <strong>${item.label}</strong><br>
+            ${item.detail}
+          </div>
+        `;
+      }).join('');
+
+      closeNote.style.display = 'none';
+      resultModal.classList.add('show');
+    }
+
+    function hideModal() {
+      resultModal.classList.remove('show');
+    }
+
+    function gradeQuiz() {
+      const userAnswers = getUserAnswers();
+
+      if (!userAnswers) {
+        resultBox.className = 'result-box fail';
+        resultBox.innerHTML = '아직 선택하지 않은 문제가 있습니다. 3문제를 모두 답한 뒤 채점하세요.';
+        return;
+      }
+
+      const items = [];
+      let correctCount = 0;
+
+      for (let i = 0; i < state.questions.length; i++) {
+        const q = state.questions[i];
+        const correct = userAnswers[i] === q.answer;
+        if (correct) correctCount++;
+
+        const userText = q.options[userAnswers[i]];
+        const correctText = q.options[q.answer];
+
+        items.push({
+          label: `${i + 1}번 문제`,
+          correct,
+          detail: correct
+            ? `선택한 답: <strong>${userText}</strong>`
+            : `선택한 답: <strong>${userText}</strong><br>정답: <strong>${correctText}</strong>`
+        });
+      }
+
+      const passed = correctCount === 3;
+
+      if (passed) {
+        resultBox.className = 'result-box pass';
+        resultBox.innerHTML = '축하합니다. <strong>3문제를 모두 맞혀 통과했습니다.</strong>';
+        localStorage.setItem('test2Passed', 'true');
+
+        if (window.opener) {
+          window.opener.postMessage({
+            type: 'testPassed',
+            testId: 'test2'
+          }, '*');
+        }
+      } else {
+        resultBox.className = 'result-box fail';
+        resultBox.innerHTML = `<strong>${correctCount}문제 정답</strong>입니다. 문제별 결과를 확인한 뒤 다시 풀 수 있습니다.`;
+        localStorage.removeItem('test2Passed');
+      }
+
+      showModal(items, passed);
+    }
+
+    function retryQuiz() {
+      buildQuiz();
+    }
+
+    function closeWindowSafely() {
+      window.close();
+
+      setTimeout(() => {
+        if (!window.closed) {
+          closeNote.style.display = 'block';
+        }
+      }, 300);
+    }
+
+    newQuizBtn.addEventListener('click', buildQuiz);
+    gradeBtn.addEventListener('click', gradeQuiz);
+    retryBtn.addEventListener('click', retryQuiz);
+    closeBtn.addEventListener('click', closeWindowSafely);
+
+    buildQuiz();
+  </script>
+</body>
+</html>

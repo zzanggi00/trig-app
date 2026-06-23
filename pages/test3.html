@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>test3 - 삼각함수의 정의 테스트</title>
+  <link rel="stylesheet" href="../assets/common.css" />
+  <style>
+    .inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .primary-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .question-card {
+      border: 1px solid #e7eef7;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: #fcfdff;
+    }
+
+    .question-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .q-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: #111827;
+      line-height: 1.6;
+    }
+
+    .q-canvas-wrap {
+      width: 100%;
+      max-width: 500px;
+      height: 280px;
+      border: 1px solid #e5edf6;
+      border-radius: 16px;
+      overflow: hidden;
+      background: white;
+      margin: 10px 0 14px;
+    }
+
+    .q-canvas-wrap canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: white;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      line-height: 1.5;
+    }
+
+    .option-label:hover {
+      background: #f8fafc;
+      border-color: #bfdbfe;
+    }
+
+    .option-label input {
+      margin: 0;
+      transform: scale(1.1);
+    }
+
+    .result-box {
+      margin-top: 16px;
+      min-height: 64px;
+    }
+
+    .result-box.pass {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #065f46;
+    }
+
+    .result-box.fail {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+
+    .mini-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+      line-height: 1.7;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.38);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(560px, 100%);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+    }
+
+    .modal-card h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    .modal-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+
+    .check-item {
+      border: 1px solid #e5edf6;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fcfdff;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .check-item.correct {
+      border-color: #a7f3d0;
+      background: #ecfdf5;
+    }
+
+    .check-item.wrong {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .check-mark {
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .check-item.correct .check-mark {
+      color: var(--ok);
+    }
+
+    .check-item.wrong .check-mark {
+      color: var(--warn);
+    }
+
+    .modal-btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .close-note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      display: none;
+    }
+
+    code {
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.96em;
+    }
+  </style>
+</head>
+<body>
+  <div class="inner">
+    <section class="hero-card">
+      <h1>삼각함수의 정의 테스트</h1>
+      <p>문제는 매번 새롭게 생성됩니다. 3문제를 모두 맞혀야 통과입니다.</p>
+    </section>
+
+    <section class="layout">
+      <section class="card">
+        <div class="top-row">
+          <div>
+            <span class="pill">test3</span>
+          </div>
+          <div class="btn-row">
+            <button id="newQuizBtn">새 문제 만들기</button>
+            <button id="gradeBtn" class="primary-btn">채점하기</button>
+          </div>
+        </div>
+
+        <div id="quizArea"></div>
+
+        <div id="resultBox" class="result-box">
+          문제를 풀고 <strong>채점하기</strong>를 누르세요.
+        </div>
+
+      </section>
+    </section>
+  </div>
+
+  <div id="resultModal" class="modal-backdrop">
+    <div class="modal-card">
+      <h2 id="modalTitle">채점 결과</h2>
+      <p id="modalSummary">결과를 확인하세요.</p>
+      <div id="checkList" class="check-list"></div>
+      <div class="modal-btn-row">
+        <button id="retryBtn" class="primary-btn">다시 풀기</button>
+        <button id="closeBtn">그만하고 창 닫기</button>
+      </div>
+      <div id="closeNote" class="close-note">
+        브라우저 설정에 따라 창이 자동으로 닫히지 않을 수 있습니다. 그런 경우 창을 직접 닫아 주세요.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      questions: []
+    };
+
+    const quizArea = document.getElementById('quizArea');
+    const resultBox = document.getElementById('resultBox');
+    const newQuizBtn = document.getElementById('newQuizBtn');
+    const gradeBtn = document.getElementById('gradeBtn');
+
+    const resultModal = document.getElementById('resultModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSummary = document.getElementById('modalSummary');
+    const checkList = document.getElementById('checkList');
+    const retryBtn = document.getElementById('retryBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const closeNote = document.getElementById('closeNote');
+
+    const signMap = {
+      1: { sin: '양수', cos: '양수', tan: '양수' },
+      2: { sin: '양수', cos: '음수', tan: '음수' },
+      3: { sin: '음수', cos: '음수', tan: '양수' },
+      4: { sin: '음수', cos: '양수', tan: '음수' }
+    };
+
+    const q1Angles = [30, 45, 60];
+    const q3Angles = [120, 135, 150, 210, 225, 240, 300, 315, 330];
+
+    const trigValueTable = {
+      30:  { x: '√3/2', y: '1/2',   quadrant: 1 },
+      45:  { x: '√2/2', y: '√2/2',  quadrant: 1 },
+      60:  { x: '1/2',  y: '√3/2',  quadrant: 1 },
+      120: { x: '-1/2', y: '√3/2',  quadrant: 2 },
+      135: { x: '-√2/2', y: '√2/2', quadrant: 2 },
+      150: { x: '-√3/2', y: '1/2',  quadrant: 2 },
+      210: { x: '-√3/2', y: '-1/2', quadrant: 3 },
+      225: { x: '-√2/2', y: '-√2/2', quadrant: 3 },
+      240: { x: '-1/2', y: '-√3/2', quadrant: 3 },
+      300: { x: '1/2', y: '-√3/2', quadrant: 4 },
+      315: { x: '√2/2', y: '-√2/2', quadrant: 4 },
+      330: { x: '√3/2', y: '-1/2', quadrant: 4 }
+    };
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function sampleOne(arr) {
+      return arr[randInt(0, arr.length - 1)];
+    }
+
+    function drawArrowHead(ctx, x1, y1, x2, y2, size = 8) {
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - size * Math.cos(angle - Math.PI / 6), y2 - size * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - size * Math.cos(angle + Math.PI / 6), y2 - size * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function toCanvasPoint(cx, cy, r, deg) {
+      const rad = deg * Math.PI / 180;
+      return {
+        x: cx + r * Math.cos(rad),
+        y: cy - r * Math.sin(rad)
+      };
+    }
+
+    function drawRightAngleMark(ctx, hx, hy, dirY) {
+      const s = 12;
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(hx, hy);
+      ctx.lineTo(hx + s, hy);
+      ctx.lineTo(hx + s, hy + dirY * s);
+      ctx.lineTo(hx, hy + dirY * s);
+      ctx.stroke();
+    }
+
+    function drawAxesAndCircle(ctx, cx, cy, r) {
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 100, cy);
+      ctx.lineTo(cx + 120, cy);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + 90);
+      ctx.lineTo(cx, cy - 100);
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      drawArrowHead(ctx, cx + 100, cy, cx + 120, cy, 8);
+      drawArrowHead(ctx, cx, cy - 80, cx, cy - 100, 8);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('x', cx + 128, cy + 6);
+      ctx.fillText('y', cx - 14, cy - 110);
+      ctx.fillText('O', cx - 18, cy + 20);
+    }
+
+    function drawQuestion1Canvas(canvasId, deg) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = 120;
+      const cy = 150;
+      const r = 80;
+      const p = toCanvasPoint(cx, cy, r, deg);
+      const hx = p.x;
+      const hy = cy;
+
+      drawAxesAndCircle(ctx, cx, cy, r);
+
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+
+      ctx.fillStyle = '#2563eb';
+      drawArrowHead(ctx, cx + (p.x - cx) * 0.85, cy + (p.y - cy) * 0.85, p.x, p.y, 9);
+
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(hx, hy);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 28, 0, -deg * Math.PI / 180, true);
+      ctx.stroke();
+
+      ctx.fillStyle = '#7c3aed';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('P', p.x + 8, p.y - 6);
+      ctx.fillText('H', hx + 8, hy + 18);
+      ctx.fillText('θ', cx + 30, cy - 8);
+
+      ctx.fillStyle = '#475569';
+      ctx.font = '15px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('OP = r', 300, 60);
+      ctx.fillText('PH = y', 300, 92);
+      ctx.fillText('OH = x', 300, 124);
+
+      drawRightAngleMark(ctx, hx, hy, -1);
+    }
+
+    function drawQuestion3Canvas(canvasId, deg) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = 120;
+      const cy = 150;
+      const r = 80;
+      const p = toCanvasPoint(cx, cy, r, deg);
+      const hx = p.x;
+      const hy = cy;
+      const dirY = p.y < cy ? -1 : 1;
+
+      drawAxesAndCircle(ctx, cx, cy, r);
+
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+
+      ctx.fillStyle = '#2563eb';
+      drawArrowHead(ctx, cx + (p.x - cx) * 0.85, cy + (p.y - cy) * 0.85, p.x, p.y, 9);
+
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(hx, hy);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      let arcDeg = deg;
+      if (deg > 180) arcDeg = deg - 360;
+      ctx.arc(cx, cy, 28, 0, -arcDeg * Math.PI / 180, arcDeg >= 0);
+      ctx.stroke();
+
+      ctx.fillStyle = '#7c3aed';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('P', p.x + 8, p.y - 6);
+      ctx.fillText('H', hx + 8, hy + 18);
+      ctx.fillText('θ', cx + 30, cy - 8);
+
+      ctx.fillStyle = '#475569';
+      ctx.font = '15px HCR Batang, 함초롱바탕, serif';
+      ctx.fillText('OP = r', 300, 60);
+      ctx.fillText('PH = y', 300, 92);
+      ctx.fillText('OH = x', 300, 124);
+
+      drawRightAngleMark(ctx, hx, hy, dirY);
+    }
+
+    function makeQuestion1() {
+      const deg = sampleOne(q1Angles);
+      const trig = sampleOne(['sin', 'cos', 'tan']);
+
+      const correctMap = {
+        sin: 'y/r',
+        cos: 'x/r',
+        tan: 'y/x'
+      };
+
+      const optionPool = ['y/x', 'x/r', 'y/r', 'x/y'];
+      const options = shuffle(optionPool);
+
+      return {
+        kind: 'canvas1',
+        canvasId: 'q1canvas',
+        deg,
+        prompt: `문제 1. 다음 그림에서 <strong>${trig}θ</strong>에 해당하는 식은 무엇인가?`,
+        options,
+        answer: options.indexOf(correctMap[trig])
+      };
+    }
+
+    function makeQuestion2() {
+      const quadrant = randInt(1, 4);
+      const trig = sampleOne(['sin', 'cos', 'tan']);
+      const correct = signMap[quadrant][trig];
+      const options = ['양수', '음수'];
+
+      return {
+        kind: 'sign',
+        prompt: `문제 2. 제${quadrant}사분면에서 <strong>${trig}</strong>의 부호는 무엇인가?`,
+        options,
+        answer: options.indexOf(correct)
+      };
+    }
+
+    function getCorrectExpressionForQ3(deg, trig) {
+      const q = trigValueTable[deg].quadrant;
+
+      if (trig === 'sin') {
+        return (q === 2) ? 'y/r' : '-y/r';
+      }
+      if (trig === 'cos') {
+        return (q === 4) ? 'x/r' : '-x/r';
+      }
+      if (trig === 'tan') {
+        return (q === 3) ? 'y/x' : '-y/x';
+      }
+      return '';
+    }
+
+    function makeQuestion3() {
+      const deg = sampleOne(q3Angles);
+      const trig = sampleOne(['sin', 'cos', 'tan']);
+      const correct = getCorrectExpressionForQ3(deg, trig);
+      const optionPool = ['y/x', '-x/r', 'y/r', '-y/x', 'x/r', '-y/r'];
+      const options = shuffle(optionPool.filter(v => v !== correct)).slice(0, 3);
+      options.push(correct);
+
+      const shuffledOptions = shuffle(options);
+
+      return {
+        kind: 'canvas3',
+        canvasId: 'q3canvas',
+        deg,
+        trig,
+        prompt: `문제 3. 다음 그림에서 <strong>${trig}θ</strong>에 해당하는 식은 무엇인가?`,
+        options: shuffledOptions,
+        answer: shuffledOptions.indexOf(correct)
+      };
+    }
+
+    function buildQuiz() {
+      state.questions = [
+        makeQuestion1(),
+        makeQuestion2(),
+        makeQuestion3()
+      ];
+
+      renderQuiz();
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '문제가 새로 생성되었습니다. 3문제를 모두 풀고 <strong>채점하기</strong>를 누르세요.';
+      hideModal();
+      localStorage.removeItem('test3Passed');
+    }
+
+    function renderQuiz() {
+      quizArea.innerHTML = state.questions.map((q, qIndex) => {
+        const canvasHtml =
+          q.kind === 'canvas1'
+            ? `<div class="q-canvas-wrap"><canvas id="${q.canvasId}" width="500" height="280"></canvas></div>`
+            : q.kind === 'canvas3'
+            ? `<div class="q-canvas-wrap"><canvas id="${q.canvasId}" width="500" height="280"></canvas></div>`
+            : '';
+
+        const optionsHtml = q.options.map((opt, optIndex) => {
+          return `
+            <label class="option-label">
+              <input type="radio" name="q${qIndex}" value="${optIndex}">
+              <span>${optIndex + 1}. ${opt}</span>
+            </label>
+          `;
+        }).join('');
+
+        return `
+          <div class="question-card">
+            <div class="q-title">${q.prompt}</div>
+            ${canvasHtml}
+            <div class="options">${optionsHtml}</div>
+          </div>
+        `;
+      }).join('');
+
+      drawQuestion1Canvas(state.questions[0].canvasId, state.questions[0].deg);
+      drawQuestion3Canvas(state.questions[2].canvasId, state.questions[2].deg);
+    }
+
+    function getUserAnswers() {
+      const answers = [];
+
+      for (let i = 0; i < state.questions.length; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) return null;
+        answers.push(Number(selected.value));
+      }
+
+      return answers;
+    }
+
+    function showModal(items, passed) {
+      modalTitle.textContent = passed ? '통과했습니다' : '다시 풀어야 합니다';
+      modalSummary.innerHTML = passed
+        ? '3문제를 모두 맞혔습니다. 결과를 확인한 뒤 창을 닫거나 다시 풀 수 있습니다.'
+        : '문제별 결과를 확인해 보세요. 3문제를 모두 맞혀야 통과입니다.';
+
+      checkList.innerHTML = items.map(item => {
+        return `
+          <div class="check-item ${item.correct ? 'correct' : 'wrong'}">
+            <span class="check-mark">${item.correct ? '정답' : '오답'}</span>
+            <strong>${item.label}</strong><br>
+            ${item.detail}
+          </div>
+        `;
+      }).join('');
+
+      closeNote.style.display = 'none';
+      resultModal.classList.add('show');
+    }
+
+    function hideModal() {
+      resultModal.classList.remove('show');
+    }
+
+    function gradeQuiz() {
+      const userAnswers = getUserAnswers();
+
+      if (!userAnswers) {
+        resultBox.className = 'result-box fail';
+        resultBox.innerHTML = '아직 선택하지 않은 문제가 있습니다. 3문제를 모두 답한 뒤 채점하세요.';
+        return;
+      }
+
+      const items = [];
+      let correctCount = 0;
+
+      for (let i = 0; i < state.questions.length; i++) {
+        const q = state.questions[i];
+        const correct = userAnswers[i] === q.answer;
+        if (correct) correctCount++;
+
+        const userText = q.options[userAnswers[i]];
+        const correctText = q.options[q.answer];
+
+        items.push({
+          label: `${i + 1}번 문제`,
+          correct,
+          detail: correct
+            ? `선택한 답: <strong>${userText}</strong>`
+            : `선택한 답: <strong>${userText}</strong><br>정답: <strong>${correctText}</strong>`
+        });
+      }
+
+      const passed = correctCount === 3;
+
+      if (passed) {
+        resultBox.className = 'result-box pass';
+        resultBox.innerHTML = '축하합니다. <strong>3문제를 모두 맞혀 통과했습니다.</strong>';
+        localStorage.setItem('test3Passed', 'true');
+
+        try {
+          if (window.opener && window.opener !== window) {
+            window.opener.postMessage({ type: 'testPassed', testId: 'test3' }, '*');
+          }
+        } catch (e) {}
+      } else {
+        resultBox.className = 'result-box fail';
+        resultBox.innerHTML = `<strong>${correctCount}문제 정답</strong>입니다. 문제별 결과를 확인한 뒤 다시 풀 수 있습니다.`;
+        localStorage.removeItem('test3Passed');
+      }
+
+      showModal(items, passed);
+    }
+
+    function retryQuiz() {
+      buildQuiz();
+    }
+
+    function closeWindowSafely() {
+      window.close();
+
+      setTimeout(() => {
+        if (!window.closed) {
+          closeNote.style.display = 'block';
+        }
+      }, 300);
+    }
+
+    newQuizBtn.addEventListener('click', buildQuiz);
+    gradeBtn.addEventListener('click', gradeQuiz);
+    retryBtn.addEventListener('click', retryQuiz);
+    closeBtn.addEventListener('click', closeWindowSafely);
+
+    window.addEventListener('load', buildQuiz);
+  </script>
+</body>
+</html>

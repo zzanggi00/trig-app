@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>test1 - 일반각 테스트</title>
+  <link rel="stylesheet" href="../assets/common.css" />
+  <style>
+    .inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .primary-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .question-card {
+      border: 1px solid #e7eef7;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: #fcfdff;
+    }
+
+    .question-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .q-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: #111827;
+      line-height: 1.6;
+    }
+
+    .q-sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: white;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      line-height: 1.5;
+    }
+
+    .option-label:hover {
+      background: #f8fafc;
+      border-color: #bfdbfe;
+    }
+
+    .option-label input {
+      margin: 0;
+      transform: scale(1.1);
+    }
+
+    .result-box {
+      margin-top: 16px;
+      min-height: 64px;
+    }
+
+    .result-box.pass {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #065f46;
+    }
+
+    .result-box.fail {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+
+    .mini-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+      line-height: 1.7;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.38);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(560px, 100%);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+    }
+
+    .modal-card h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    .modal-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+
+    .check-item {
+      border: 1px solid #e5edf6;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fcfdff;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .check-item.correct {
+      border-color: #a7f3d0;
+      background: #ecfdf5;
+    }
+
+    .check-item.wrong {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .check-mark {
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .check-item.correct .check-mark {
+      color: var(--ok);
+    }
+
+    .check-item.wrong .check-mark {
+      color: var(--warn);
+    }
+
+    .modal-btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .close-note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="inner">
+    <section class="hero-card">
+      <h1>일반각 테스트</h1>
+      <p>문제는 매번 새롭게 생성됩니다. 3문제를 모두 맞혀야 통과입니다.</p>
+      <p>채점 후 각 문제의 정답 여부를 확인한 뒤 다시 풀거나 창을 닫을 수 있습니다.</p>
+    </section>
+
+    <section class="layout">
+      <section class="card">
+        <div class="top-row">
+          <div>
+            <span class="pill">test1</span>
+          </div>
+          <div class="btn-row">
+            <button id="newQuizBtn">새 문제 만들기</button>
+            <button id="gradeBtn" class="primary-btn">채점하기</button>
+          </div>
+        </div>
+
+        <div id="quizArea"></div>
+
+        <div id="resultBox" class="result-box">
+          문제를 풀고 <strong>채점하기</strong>를 누르세요.
+        </div>
+
+      </section>
+    </section>
+  </div>
+
+  <div id="resultModal" class="modal-backdrop">
+    <div class="modal-card">
+      <h2 id="modalTitle">채점 결과</h2>
+      <p id="modalSummary">결과를 확인하세요.</p>
+      <div id="checkList" class="check-list"></div>
+      <div class="modal-btn-row">
+        <button id="retryBtn" class="primary-btn">다시 풀기</button>
+        <button id="closeBtn">그만하고 창 닫기</button>
+      </div>
+      <div id="closeNote" class="close-note">
+        브라우저 설정에 따라 창이 자동으로 닫히지 않을 수 있습니다. 그런 경우 창을 직접 닫아 주세요.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      questions: []
+    };
+
+    const quizArea = document.getElementById('quizArea');
+    const resultBox = document.getElementById('resultBox');
+    const newQuizBtn = document.getElementById('newQuizBtn');
+    const gradeBtn = document.getElementById('gradeBtn');
+
+    const resultModal = document.getElementById('resultModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSummary = document.getElementById('modalSummary');
+    const checkList = document.getElementById('checkList');
+    const retryBtn = document.getElementById('retryBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const closeNote = document.getElementById('closeNote');
+
+    function normalizeDeg(deg) {
+      return ((deg % 360) + 360) % 360;
+    }
+
+    function isAxisAngle(deg) {
+      const n = normalizeDeg(deg);
+      return n === 0 || n === 90 || n === 180 || n === 270;
+    }
+
+    function quadrantOf(deg) {
+      const n = normalizeDeg(deg);
+      if (n > 0 && n < 90) return 1;
+      if (n > 90 && n < 180) return 2;
+      if (n > 180 && n < 270) return 3;
+      if (n > 270 && n < 360) return 4;
+      return null;
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function formatDeg(n) {
+      return `${n}도`;
+    }
+
+    function randomAngleForQuadrant() {
+      while (true) {
+        const deg = randInt(-1440, 1440);
+        if (deg === 0) continue;
+        if (isAxisAngle(deg)) continue;
+        return deg;
+      }
+    }
+
+    function randomPositiveNonAxisAngle() {
+      while (true) {
+        const deg = randInt(10, 350);
+        if (!isAxisAngle(deg)) return deg;
+      }
+    }
+
+    function randomMixedNonAxisAngle() {
+      while (true) {
+        const deg = randInt(-720, 720);
+        if (deg === 0) continue;
+        if (!isAxisAngle(deg)) return deg;
+      }
+    }
+
+    function makeQuadrantQuestion() {
+      const deg = randomAngleForQuadrant();
+      const answer = quadrantOf(deg) - 1;
+
+      return {
+        type: 'single',
+        prompt: `문제 1. 다음 각이 나타내는 사분면은 몇사분면인가?<br><strong>${formatDeg(deg)}</strong>`,
+        sub: '보기에서 알맞은 사분면을 고르세요.',
+        options: ['1사분면', '2사분면', '3사분면', '4사분면'],
+        answer
+      };
+    }
+
+    function makeCoterminalQuestionPositive() {
+      const base = randomPositiveNonAxisAngle();
+      const correct = base + 360 * randInt(1, 4);
+
+      const wrongs = new Set();
+      while (wrongs.size < 3) {
+        const v = randInt(10, 1440);
+        if (v === correct) continue;
+        if (normalizeDeg(v) === normalizeDeg(base)) continue;
+        wrongs.add(v);
+      }
+
+      const optionValues = shuffle([correct, ...wrongs]);
+      const answer = optionValues.indexOf(correct);
+
+      return {
+        type: 'single',
+        prompt: `문제 2. 다음 각과 같은 동경을 갖는 각을 고르시오.<br><strong>${formatDeg(base)}</strong>`,
+        sub: '같은 동경을 갖는 각은 360도의 정수배만큼 차이납니다.',
+        options: optionValues.map(v => formatDeg(v)),
+        answer
+      };
+    }
+
+    function makeCoterminalQuestionMixed() {
+      let base = randomMixedNonAxisAngle();
+
+      if (Math.random() < 0.7 && base > 0) {
+        base = base - 360 * randInt(1, 2);
+        if (base === 0 || isAxisAngle(base)) {
+          base = randomMixedNonAxisAngle();
+        }
+      }
+
+      let correct;
+      while (true) {
+        const k = randInt(-3, 3);
+        if (k === 0) continue;
+        const candidate = base + 360 * k;
+        if (candidate < -1080 || candidate > 1080) continue;
+        correct = candidate;
+        break;
+      }
+
+      const wrongs = new Set();
+      while (wrongs.size < 3) {
+        const v = randInt(-1080, 1080);
+        if (v === 0) continue;
+        if (v === correct) continue;
+        if (normalizeDeg(v) === normalizeDeg(base)) continue;
+        wrongs.add(v);
+      }
+
+      const optionValues = shuffle([correct, ...wrongs]);
+      const answer = optionValues.indexOf(correct);
+
+      return {
+        type: 'single',
+        prompt: `문제 3. 다음 각과 같은 동경을 갖는 각을 고르시오.<br><strong>${formatDeg(base)}</strong>`,
+        sub: '이 문제는 음수각도 포함될 수 있습니다.',
+        options: optionValues.map(v => formatDeg(v)),
+        answer
+      };
+    }
+
+    function buildQuiz() {
+      state.questions = [
+        makeQuadrantQuestion(),
+        makeCoterminalQuestionPositive(),
+        makeCoterminalQuestionMixed()
+      ];
+
+      renderQuiz();
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '문제가 새로 생성되었습니다. 3문제를 모두 풀고 <strong>채점하기</strong>를 누르세요.';
+      hideModal();
+      localStorage.removeItem('test1Passed');
+    }
+
+    function renderQuiz() {
+      quizArea.innerHTML = state.questions.map((q, qIndex) => {
+        const optionsHtml = q.options.map((opt, optIndex) => {
+          return `
+            <label class="option-label">
+              <input type="radio" name="q${qIndex}" value="${optIndex}">
+              <span>${optIndex + 1}. ${opt}</span>
+            </label>
+          `;
+        }).join('');
+
+        return `
+          <div class="question-card">
+            <div class="q-title">${q.prompt}</div>
+            <div class="q-sub">${q.sub}</div>
+            <div class="options">${optionsHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getUserAnswers() {
+      const answers = [];
+
+      for (let i = 0; i < state.questions.length; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) return null;
+        answers.push(Number(selected.value));
+      }
+
+      return answers;
+    }
+
+    function showModal(items, passed) {
+      modalTitle.textContent = passed ? '통과했습니다' : '다시 풀어야 합니다';
+      modalSummary.innerHTML = passed
+        ? '3문제를 모두 맞혔습니다. 결과를 확인한 뒤 창을 닫거나 다시 풀 수 있습니다.'
+        : '문제별 결과를 확인해 보세요. 3문제를 모두 맞혀야 통과입니다.';
+
+      checkList.innerHTML = items.map(item => {
+        return `
+          <div class="check-item ${item.correct ? 'correct' : 'wrong'}">
+            <span class="check-mark">${item.correct ? '정답' : '오답'}</span>
+            <strong>${item.label}</strong><br>
+            ${item.detail}
+          </div>
+        `;
+      }).join('');
+
+      closeNote.style.display = 'none';
+      resultModal.classList.add('show');
+    }
+
+    function hideModal() {
+      resultModal.classList.remove('show');
+    }
+
+    function gradeQuiz() {
+      const userAnswers = getUserAnswers();
+
+      if (!userAnswers) {
+        resultBox.className = 'result-box fail';
+        resultBox.innerHTML = '아직 선택하지 않은 문제가 있습니다. 3문제를 모두 답한 뒤 채점하세요.';
+        return;
+      }
+
+      const items = [];
+      let correctCount = 0;
+
+      for (let i = 0; i < state.questions.length; i++) {
+        const q = state.questions[i];
+        const correct = userAnswers[i] === q.answer;
+        if (correct) correctCount++;
+
+        const userText = q.options[userAnswers[i]];
+        const correctText = q.options[q.answer];
+
+        items.push({
+          label: `${i + 1}번 문제`,
+          correct,
+          detail: correct
+            ? `선택한 답: <strong>${userText}</strong>`
+            : `선택한 답: <strong>${userText}</strong><br>정답: <strong>${correctText}</strong>`
+        });
+      }
+
+      const passed = correctCount === 3;
+
+      if (passed) {
+        resultBox.className = 'result-box pass';
+        resultBox.innerHTML = '축하합니다. <strong>3문제를 모두 맞혀 통과했습니다.</strong>';
+        localStorage.setItem('test1Passed', 'true');
+
+        if (window.opener) {
+          window.opener.postMessage({
+            type: 'testPassed',
+            testId: 'test1'
+          }, '*');
+        }
+      } else {
+        resultBox.className = 'result-box fail';
+        resultBox.innerHTML = `<strong>${correctCount}문제 정답</strong>입니다. 문제별 결과를 확인한 뒤 다시 풀 수 있습니다.`;
+        localStorage.removeItem('test1Passed');
+      }
+
+      showModal(items, passed);
+    }
+
+    function retryQuiz() {
+      buildQuiz();
+    }
+
+    function closeWindowSafely() {
+      window.close();
+
+      setTimeout(() => {
+        if (!window.closed) {
+          closeNote.style.display = 'block';
+        }
+      }, 300);
+    }
+
+    newQuizBtn.addEventListener('click', buildQuiz);
+    gradeBtn.addEventListener('click', gradeQuiz);
+    retryBtn.addEventListener('click', retryQuiz);
+    closeBtn.addEventListener('click', closeWindowSafely);
+
+    buildQuiz();
+  </script>
+</body>
+</html>
