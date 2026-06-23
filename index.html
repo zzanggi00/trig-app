@@ -3,14 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>삼각함수 개념 탐구 웹앱</title>
+  <title>삼각함수 개념 탐구 웹 앱</title>
   <link rel="stylesheet" href="assets/common.css" />
+  <style>
+    .hero-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .hero-head h1 {
+      margin: 0;
+    }
+
+    .hero-test-btn {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .hero-test-btn:hover {
+      background: #f8fafc;
+    }
+
+    .hero-test-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
   <div class="app">
     <section class="hero">
-      <h1>삼각함수 개념 탐구 웹앱</h1>
-      <p><strong>대상:</strong> 고등학교 2학년 대수(2022 개정교육과정)</p>
+      <div class="hero-head">
+        <h1>삼각함수 개념 탐구 웹 앱(2022개정 교육과정 : 고등학교 2학년 대수)</h1>
+        <button id="openTestBtn" type="button" class="hero-test-btn">1차시 테스트</button>
+      </div>
 
       <div class="nav-grid">
         <a class="nav-btn active" data-page="page1" href="pages/page1.html" target="contentFrame">1.일반각</a>
@@ -27,13 +63,77 @@
     </section>
 
     <div class="frame-wrap">
-      <iframe id="contentFrame" name="contentFrame" src="pages/page1.html" title="페이지별 콘텐츠"></iframe>
+      <iframe
+        id="contentFrame"
+        name="contentFrame"
+        src="pages/page1.html"
+        title="페이지별 콘텐츠">
+      </iframe>
     </div>
   </div>
 
-  <script src="assets/common.js"></script>
-  <script>
-    TrigCommon.setupFrameShell('contentFrame', '.nav-btn', 690);
-  </script>
+ <script src="assets/common.js"></script>
+<script>
+  const frame = document.getElementById('contentFrame');
+  const openTestBtn = document.getElementById('openTestBtn');
+
+  const testMap = {
+    page1: 'test1',
+    page2: 'test2',
+    page3: 'test3',
+    page4: 'test4',
+    page5: 'test5',
+    page6: 'test6',
+    page7: 'test7',
+    page8: 'test8',
+    page9: 'test9',
+    page10: 'test10'
+  };
+
+  let currentPageId = 'page1';
+
+  function updateTestButton() {
+    if (testMap[currentPageId]) {
+      openTestBtn.disabled = false;
+      openTestBtn.textContent = `${currentPageId.replace('page', '')}차시 테스트`;
+    } else {
+      openTestBtn.disabled = true;
+      openTestBtn.textContent = '현재 차시 테스트';
+    }
+  }
+
+  function openCurrentTestPopup() {
+    const testId = testMap[currentPageId];
+    if (!testId) return;
+
+    const popupWidth = Math.floor(window.innerWidth / 2);
+    const popupHeight = window.innerHeight;
+    const left = window.screenX + Math.floor((window.outerWidth - popupWidth) / 2);
+    const top = window.screenY;
+
+    window.open(
+      `pages/${testId}.html`,
+      `${testId}Popup`,
+      `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`
+    );
+  }
+
+  openTestBtn.addEventListener('click', openCurrentTestPopup);
+
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pageId = btn.dataset.page;
+      if (pageId) {
+        currentPageId = pageId;
+        updateTestButton();
+      }
+    });
+  });
+
+  TrigCommon.setupFrameShell('contentFrame', '.nav-btn', 760);
+  updateTestButton();
+</script>
+
+
 </body>
 </html>
