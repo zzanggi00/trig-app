@@ -8,8 +8,22 @@
 </head>
 <body class="lower-page">
   <div class="inner">
-    <section class="hero-card">
-      <h1>1. 일반각</h1>
+    <section class="hero-card lesson-hero-card">
+      <div class="lesson-header-grid">
+        <div class="lesson-heading-block">
+          <h1>1. 일반각</h1>
+          <p class="achievement-standard"><strong>성취기준</strong> : 일반각과 호도법의 뜻을 알고, 그 관계를 설명할 수 있다.</p>
+        </div>
+        <div class="mission-box">
+          <strong class="mission-label">탐구미션</strong>
+          <ol class="mission-list">
+            <li>각의 크기가 360°보다 커지면 동경의 위치는 어떻게 변하는가?</li>
+            <li>양의 각과 음의 각은 회전 방향에 어떤 차이가 있는가?</li>
+            <li>60°, 420°, -300°처럼 크기가 다른 각의 동경이 같은 위치에 놓이는 이유는 무엇인가?</li>
+            <li>동경의 위치가 같은 각들은 서로 어떤 관계가 있는가?</li>
+          </ol>
+        </div>
+      </div>
     </section>
 
     <section class="layout side-panel">
@@ -17,6 +31,11 @@
         <h2>조작 패널</h2>
         <div class="subtext">각도를 입력하거나 슬라이더로 조절하고, 오른쪽 그림에서는 동경 OP를 직접 끌어 각도를 바꿔 보세요.</div>
         <div id="leftPanel"></div>
+        <div class="small-buttons" style="margin-top:14px;">
+          <button id="playBtn" type="button" class="play-btn">▶ 재생</button>
+          <button id="pauseBtn" type="button" class="pause-btn" disabled>⏸ 일시정지</button>
+          <button id="resetBtn" type="button" class="reset-animation-btn">↺ 초기화</button>
+        </div>
       </aside>
 
       <main class="viewer">
@@ -31,6 +50,11 @@
     const state = { angleDeg: 60, dragging: false };
     const leftPanel = document.getElementById('leftPanel');
     const rightView = document.getElementById('rightView');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    let animationId = null;
+    let lastAnimationTime = 0;
 
     function coterminalExamples(reduced) {
       return [reduced, reduced + 360, reduced - 360, reduced + 720, reduced - 1080];
@@ -88,19 +112,24 @@
         </div>
       `;
 
-      document.getElementById('angleInput').addEventListener('input', e => {
-        const raw = e.target.value;
-        state.angleDeg = (raw === '' || raw === '-') ? 0 : Number(raw);
+      document.getElementById('angleInput').addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        stopAnimation();
+        const value = Number(e.target.value);
+        if (Number.isFinite(value)) state.angleDeg = value;
         render();
       });
 
       document.getElementById('angleSlider').addEventListener('input', e => {
+        stopAnimation();
         state.angleDeg = Number(e.target.value);
         render();
       });
 
       document.querySelectorAll('[data-angle]').forEach(btn => {
         btn.addEventListener('click', () => {
+          stopAnimation();
           state.angleDeg = Number(btn.dataset.angle);
           render();
         });
@@ -319,6 +348,7 @@
       };
 
       canvas.addEventListener('mousedown', event => {
+        stopAnimation();
         state.dragging = true;
         updateFromPointer(event);
       });
@@ -335,6 +365,43 @@
         state.dragging = false;
       });
     }
+
+    function stopAnimation() {
+      if (animationId !== null) cancelAnimationFrame(animationId);
+      animationId = null;
+      playBtn.classList.remove('running');
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+
+    function animationStep(time) {
+      if (animationId === null) return;
+      if (time - lastAnimationTime >= 24) {
+        state.angleDeg += 2;
+        if (state.angleDeg > 1440) state.angleDeg = -1440;
+        render();
+        lastAnimationTime = time;
+      }
+      animationId = requestAnimationFrame(animationStep);
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (animationId !== null) return;
+      playBtn.classList.add('running');
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      lastAnimationTime = 0;
+      animationId = requestAnimationFrame(animationStep);
+    });
+
+    pauseBtn.addEventListener('click', stopAnimation);
+
+    resetBtn.addEventListener('click', () => {
+      stopAnimation();
+      state.angleDeg = 60;
+      state.dragging = false;
+      render();
+    });
 
     function render() {
       renderLeft();

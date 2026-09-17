@@ -183,13 +183,13 @@ window.TrigCommon = (() => {
     drawFractionText(ctx, x + 110, y - 8, topText, bottomText, lineWidth);
   }
 
-  function postHeight(page, selector = '.inner', minHeight = 760) {
+  function postHeight(page, selector = '.inner', minHeight = 600) {
     const inner = document.querySelector(selector);
-    const height = inner ? Math.max(minHeight, Math.ceil(inner.getBoundingClientRect().height) + 24) : minHeight;
+    const height = inner ? Math.max(minHeight, Math.ceil(inner.getBoundingClientRect().height) + 20) : minHeight;
     window.parent.postMessage({ type: 'setHeight', height, page }, '*');
   }
 
-  function setupFrameShell(frameId = 'contentFrame', navSelector = '.nav-btn', minHeight = 760) {
+  function setupFrameShell(frameId = 'contentFrame', navSelector = '.nav-btn', minHeight = 600) {
     const navButtons = [...document.querySelectorAll(navSelector)];
     const frame = document.getElementById(frameId);
     let lastFrameHeight = 0;

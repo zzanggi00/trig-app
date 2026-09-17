@@ -8,17 +8,29 @@
 </head>
 <body class="lower-page">
   <div class="inner">
-    <section class="hero-card">
-      <h1>6. 삼각함수의 그래프(코사인)</h1>
-      <p>단위원 위의 점 <strong>P</strong>를 움직이면 점의 <strong>세로 좌표</strong>가 변하고, 이것이 바로 <strong>cos θ</strong>의 값이 됩니다.</p>
-      <p>이 페이지에서는 시초선을 <strong>위쪽(0)</strong>으로 두고, <strong>시계반대방향</strong>으로 각이 증가하도록 하여 오른쪽에 <strong>cos 그래프</strong>가 그려지도록 구성했습니다.</p>
+    <section class="hero-card lesson-hero-card">
+      <div class="lesson-header-grid">
+        <div class="lesson-heading-block">
+          <h1>6. 삼각함수의 그래프(코사인)</h1>
+          <p class="achievement-standard"><strong>성취기준</strong> : 사인함수, 코사인함수, 탄젠트함수의 그래프를 그리고, 그 성질을 설명할 수 있다.</p>
+        </div>
+        <div class="mission-box">
+          <strong class="mission-label">탐구미션</strong>
+          <ol class="mission-list">
+            <li>단위원 위 점 P의 x좌표가 변할 때 코사인함수의 그래프는 어떻게 만들어지는가?</li>
+            <li>코사인함수의 그래프는 얼마만큼 이동하면 같은 모양이 반복되는가?</li>
+            <li>코사인함수의 값이 0, 1, -1이 되는 각은 어떤 규칙을 가지는가?</li>
+            <li>사인함수와 코사인함수의 그래프를 비교하면 모양과 위치에는 어떤 공통점과 차이점이 있는가?</li>
+          </ol>
+        </div>
+      </div>
     </section>
 
     <section class="layout wide-left">
       <section class="card">
         <div class="head-block">
           <h2>단위원</h2>
-          <p class="subtext compact">위쪽이 0인 상태에서 반시계방향으로 각이 증가합니다.</p>
+          <p class="subtext compact">오른쪽 시초선에서 반시계방향으로 각이 증가합니다.</p>
           <p class="subtext compact">점 P를 직접 움직이면 cos 함수의 그래프가 그려집니다.</p>
           <p class="subtext compact">각의 크기는 -π에서 3π까지 라디안값으로 표현됩니다.</p>
         </div>
@@ -38,6 +50,9 @@
           <button data-angle="270">3π/2</button>
           <button data-angle="360">2π</button>
           <button data-angle="540">3π</button>
+          <button id="playBtn" type="button" class="play-btn">▶ 재생</button>
+            <button id="pauseBtn" type="button" class="pause-btn" disabled>⏸ 일시정지</button>
+            <button id="resetBtn" type="button" class="reset-animation-btn">↺ 초기화</button>
         </div>
 
         <div class="meta-card" id="stateBox"></div>
@@ -75,6 +90,11 @@
     const circleCanvas = document.getElementById('circleCanvas');
     const graphCanvas = document.getElementById('graphCanvas');
     const clearBtn = document.getElementById('clearBtn');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    let animationId = null;
+    let lastAnimationTime = 0;
     const stateBox = document.getElementById('stateBox');
     const radText = document.getElementById('radText');
     const cosText = document.getElementById('cosText');
@@ -87,8 +107,8 @@
       const reducedTheta = C.toRad(C.normalizeDeg(state.angleDeg));
 
       const xCoord = Math.cos(theta);
-      const yCoord = -Math.sin(theta);
-      const cosValue = Math.cos(theta);
+      const yCoord = Math.sin(theta);
+      const cosValue = xCoord;
 
       return { theta, reducedTheta, xCoord, yCoord, cosValue };
     }
@@ -138,11 +158,11 @@
 
       const { top, bottom, cy, radius } = C.getSharedVerticalGeometry(h);
       const cx = w / 2;
-
       const { theta, reducedTheta, cosValue } = getValues();
 
-      const px = cx - radius * Math.sin(reducedTheta);
-      const py = cy - radius * Math.cos(reducedTheta);
+      // 표준 단위원: 오른쪽이 0, 반시계방향이 양의 방향
+      const px = cx + radius * Math.cos(reducedTheta);
+      const py = cy - radius * Math.sin(reducedTheta);
 
       ctx.strokeStyle = '#111827';
       ctx.lineWidth = 2.2;
@@ -161,12 +181,10 @@
       C.drawArrowHead(ctx, cx, top + 18, cx, top, 9);
 
       ctx.font = 'bold 16px HCR Batang, 함초롱바탕, serif';
-      ctx.fillText('y', cx + radius + 80, cy + 6);
-      ctx.fillText('x', cx - 12, top - 12);
+      ctx.fillText('x', cx + radius + 80, cy + 6);
+      ctx.fillText('y', cx - 12, top - 12);
       ctx.fillText('O', cx - 22, cy + 22);
-
-      // 위쪽 시초선 0만 표시
-      ctx.fillText('0', cx + 10, top + 10);
+      ctx.fillText('0', cx + radius - 8, cy + 22);
 
       ctx.strokeStyle = '#cbd5e1';
       ctx.lineWidth = 2;
@@ -174,15 +192,15 @@
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 시초선: 위쪽
+      // 시초선: 오른쪽
       ctx.strokeStyle = '#2563eb';
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.lineTo(cx, cy - radius);
+      ctx.lineTo(cx + radius, cy);
       ctx.stroke();
 
-      // OP
+      // 동경 OP
       ctx.strokeStyle = '#7c3aed';
       ctx.lineWidth = 4;
       ctx.beginPath();
@@ -193,8 +211,8 @@
       ctx.fillStyle = '#7c3aed';
       C.drawArrowHead(
         ctx,
-        cx - (radius - 16) * Math.sin(reducedTheta),
-        cy - (radius - 16) * Math.cos(reducedTheta),
+        cx + (radius - 16) * Math.cos(reducedTheta),
+        cy - (radius - 16) * Math.sin(reducedTheta),
         px,
         py,
         10
@@ -206,39 +224,39 @@
       ctx.arc(px, py, 7, 0, Math.PI * 2);
       ctx.fill();
 
-      // 점선
+      // x축으로 내린 수선
       ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([6, 5]);
       ctx.beginPath();
       ctx.moveTo(px, py);
-      ctx.lineTo(w, py);
+      ctx.lineTo(px, cy);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // cos 강조
+      // cos θ = P의 x좌표를 가로선으로 강조
       ctx.strokeStyle = '#059669';
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(px, cy);
-      ctx.lineTo(px, py);
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px, cy);
       ctx.stroke();
 
       ctx.strokeStyle = '#f59e0b';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(cx, cy, 40, -Math.PI / 2, -Math.PI / 2 - reducedTheta, theta >= 0);
+      ctx.arc(cx, cy, 40, 0, -reducedTheta, true);
       ctx.stroke();
 
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 17px HCR Batang, 함초롱바탕, serif';
       ctx.fillText('P', px + 10, py - 8);
-      ctx.fillText('θ', cx - 24, cy - 50);
+      ctx.fillText('θ', cx + 28, cy - 14);
 
       ctx.fillStyle = '#334155';
       ctx.font = '14px HCR Batang, 함초롱바탕, serif';
       ctx.fillText(`θ = ${C.radToPiText(theta)}`, 14, 26);
-      ctx.fillText(`cos θ = ${C.formatNum(cosValue)}`, 14, 50);
+      ctx.fillText(`cos θ = x = ${C.formatNum(cosValue)}`, 14, 50);
     }
 
     function drawGraphCanvas() {
@@ -377,13 +395,62 @@
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 20) return;
 
-      let baseDeg = Math.atan2(-dx, dy) * 180 / Math.PI;
+      let baseDeg = Math.atan2(dy, dx) * 180 / Math.PI;
       if (baseDeg < 0) baseDeg += 360;
 
       let nextDeg = C.nearestCoterminal(baseDeg, state.angleDeg);
       nextDeg = Math.max(-180, Math.min(540, nextDeg));
       setAngle(Math.round(nextDeg), true);
     }
+
+    function stopAnimation() {
+      if (animationId !== null) cancelAnimationFrame(animationId);
+      animationId = null;
+      playBtn.classList.remove('running');
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+
+    function animationStep(time) {
+      if (animationId === null) return;
+      if (time - lastAnimationTime >= 22) {
+        const next = state.angleDeg + 2;
+        if (next > 540) {
+          setAngle(540, true);
+          stopAnimation();
+          return;
+        }
+        setAngle(next, true);
+        lastAnimationTime = time;
+      }
+      if (animationId !== null) animationId = requestAnimationFrame(animationStep);
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (animationId !== null) return;
+      if (state.angleDeg >= 540 || state.tracePoints.length <= 1) {
+        state.tracePoints = [];
+        state.angleDeg = -180;
+        addTracePoint();
+        render();
+      }
+      playBtn.classList.add('running');
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      lastAnimationTime = 0;
+      animationId = requestAnimationFrame(animationStep);
+    });
+
+    pauseBtn.addEventListener('click', stopAnimation);
+
+    resetBtn.addEventListener('click', () => {
+      stopAnimation();
+      state.angleDeg = 0;
+      state.dragging = false;
+      state.tracePoints = [];
+      addTracePoint();
+      render();
+    });
 
     function render() {
       updateOutputs();
@@ -393,15 +460,17 @@
     }
 
     document.querySelectorAll('[data-angle]').forEach(btn => {
-      btn.addEventListener('click', () => setAngle(Number(btn.dataset.angle), true));
+      btn.addEventListener('click', () => { stopAnimation(); setAngle(Number(btn.dataset.angle), true); });
     });
 
     clearBtn.addEventListener('click', () => {
+      stopAnimation();
       state.tracePoints = [];
       render();
     });
 
     circleCanvas.addEventListener('mousedown', event => {
+      stopAnimation();
       state.dragging = true;
       updateFromCirclePointer(event);
     });

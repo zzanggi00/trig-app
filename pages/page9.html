@@ -97,10 +97,23 @@
 </head>
 <body class="lower-page">
   <div class="inner">
-    <section class="hero-card">
-      <h1>9. 삼각함수 그래프의 변환(코사인)</h1>
-      <p><strong>y = a cos b(x-c) + d</strong> 꼴의 그래프를 그리고, 각 상수가 그래프에 어떤 영향을 주는지 확인합니다.</p>
-      <p><strong>a</strong>는 그래프의 위아래 확대, <strong>b</strong>는 주기 변화, <strong>c</strong>는 x축 방향 평행이동, <strong>d</strong>는 y축 방향 평행이동을 나타냅니다.</p>
+    <section class="hero-card lesson-hero-card">
+      <div class="lesson-header-grid">
+        <div class="lesson-heading-block">
+          <h1>9. 삼각함수 그래프의 변환(코사인)</h1>
+          <p class="achievement-standard"><strong>성취기준</strong> : 사인함수, 코사인함수, 탄젠트함수의 그래프를 그리고, 그 성질을 설명할 수 있다.</p>
+          <p class="achievement-standard"><strong>y = a cos b(x-c) + d</strong>꼴의 그래프를 그리고, 각 상수가 그래프에 어떤 영향을 주는지 확인합니다.</p>
+        </div>
+        <div class="mission-box">
+          <strong class="mission-label">탐구미션</strong>
+          <ol class="mission-list">
+            <li>a의 값을 변화시키면 코사인 그래프의 높이와 모양은 어떻게 변하는가?</li>
+            <li>b의 값을 변화시키면 그래프의 주기는 어떻게 변하는가?</li>
+            <li>c의 값을 변화시키면 그래프의 시작 위치와 전체 그래프는 어떻게 이동하는가?</li>
+            <li>d의 값을 변화시키면 그래프의 중심선과 최댓값·최솟값은 어떻게 변하는가?</li>
+          </ol>
+        </div>
+      </div>
     </section>
 
     <section class="layout wide-left">
@@ -165,7 +178,9 @@
         </div>
 
         <div class="small-buttons">
-          <button id="resetBtn">기본값으로 되돌리기</button>
+          <button id="playBtn" type="button" class="play-btn">▶ 재생</button>
+          <button id="pauseBtn" type="button" class="pause-btn" disabled>⏸ 일시정지</button>
+          <button id="resetBtn" type="button" class="reset-animation-btn">↺ 초기화</button>
         </div>
 
         <div class="formula-box" id="summaryBox"></div>
@@ -237,6 +252,11 @@
     const shiftText = document.getElementById('shiftText');
 
     const resetBtn = document.getElementById('resetBtn');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    let animationId = null;
+    let lastAnimationTime = 0;
+    let animationDirection = 1;
 
     const X_MIN = -Math.PI;
     const X_MAX = 3 * Math.PI;
@@ -472,6 +492,42 @@
       ctx.fillText('흐린 그래프와 현재 그래프를 비교하며 변화량을 관찰해 보세요.', left, h - 18);
     }
 
+    function stopAnimation() {
+      if (animationId !== null) cancelAnimationFrame(animationId);
+      animationId = null;
+      playBtn.classList.remove('running');
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+
+    function animationStep(time) {
+      if (animationId === null) return;
+      if (time - lastAnimationTime >= 32) {
+        state.c += animationDirection * (Math.PI / 90);
+        if (state.c >= 2 * Math.PI) {
+          state.c = 2 * Math.PI;
+          animationDirection = -1;
+        } else if (state.c <= -Math.PI) {
+          state.c = -Math.PI;
+          animationDirection = 1;
+        }
+        render();
+        lastAnimationTime = time;
+      }
+      animationId = requestAnimationFrame(animationStep);
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (animationId !== null) return;
+      playBtn.classList.add('running');
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      lastAnimationTime = 0;
+      animationId = requestAnimationFrame(animationStep);
+    });
+
+    pauseBtn.addEventListener('click', stopAnimation);
+
     function render() {
       updateOutputs();
       drawGraph();
@@ -479,26 +535,31 @@
     }
 
     aRange.addEventListener('input', e => {
+      stopAnimation();
       state.a = Number(e.target.value) / 10;
       render();
     });
 
     bRange.addEventListener('input', e => {
+      stopAnimation();
       state.b = Number(e.target.value) / 10;
       render();
     });
 
     cRange.addEventListener('input', e => {
+      stopAnimation();
       state.c = Number(e.target.value) * C_UNIT;
       render();
     });
 
     dRange.addEventListener('input', e => {
+      stopAnimation();
       state.d = Number(e.target.value) / 10;
       render();
     });
 
     aInput.addEventListener('change', e => {
+      stopAnimation();
       let v = Number(e.target.value);
       if (!Number.isFinite(v)) v = state.a;
       state.a = clamp(v, -2, 3);
@@ -506,6 +567,7 @@
     });
 
     bInput.addEventListener('change', e => {
+      stopAnimation();
       let v = Number(e.target.value);
       if (!Number.isFinite(v)) v = state.b;
       state.b = clamp(v, 0, 5);
@@ -513,6 +575,7 @@
     });
 
     cInput.addEventListener('change', e => {
+      stopAnimation();
       const parsed = parsePiExpression(e.target.value);
       if (parsed === null) {
         syncInputs();
@@ -523,6 +586,7 @@
     });
 
     dInput.addEventListener('change', e => {
+      stopAnimation();
       let v = Number(e.target.value);
       if (!Number.isFinite(v)) v = state.d;
       state.d = clamp(v, -2, 2);
@@ -530,10 +594,12 @@
     });
 
     resetBtn.addEventListener('click', () => {
+      stopAnimation();
       state.a = 1;
       state.b = 1;
       state.c = 0;
       state.d = 0;
+      animationDirection = 1;
       render();
     });
 

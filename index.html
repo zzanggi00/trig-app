@@ -38,6 +38,48 @@
       opacity: 0.45;
       cursor: not-allowed;
     }
+
+    .test-wrap {
+      display: none;
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+    }
+
+    .test-wrap.open { display: block; }
+
+    .test-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+
+    .test-head strong { font-size: 17px; }
+
+    .test-close-btn {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 12px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+    }
+
+    #testFrame {
+      width: 100%;
+      min-height: 760px;
+      border: 0;
+      display: block;
+      background: white;
+    }
   </style>
 </head>
 <body>
@@ -70,12 +112,24 @@
         title="페이지별 콘텐츠">
       </iframe>
     </div>
+
+    <section id="testWrap" class="test-wrap" aria-label="차시별 학습 확인 테스트">
+      <div class="test-head">
+        <strong id="testTitle">1차시 학습 확인 테스트</strong>
+        <button id="closeTestFrameBtn" type="button" class="test-close-btn">테스트 닫기</button>
+      </div>
+      <iframe id="testFrame" title="차시별 테스트" src="about:blank"></iframe>
+    </section>
   </div>
 
  <script src="assets/common.js"></script>
 <script>
   const frame = document.getElementById('contentFrame');
   const openTestBtn = document.getElementById('openTestBtn');
+  const testWrap = document.getElementById('testWrap');
+  const testFrame = document.getElementById('testFrame');
+  const testTitle = document.getElementById('testTitle');
+  const closeTestFrameBtn = document.getElementById('closeTestFrameBtn');
 
   const testMap = {
     page1: 'test1',
@@ -102,23 +156,53 @@
     }
   }
 
-  function openCurrentTestPopup() {
+  function closeTestFrame() {
+    testWrap.classList.remove('open');
+    testFrame.src = 'about:blank';
+  }
+
+  function openCurrentTestFrame() {
     const testId = testMap[currentPageId];
     if (!testId) return;
 
-    const popupWidth = Math.floor(window.innerWidth / 2);
-    const popupHeight = window.innerHeight;
-    const left = window.screenX + Math.floor((window.outerWidth - popupWidth) / 2);
-    const top = window.screenY;
+    const lessonNo = currentPageId.replace('page', '');
+    testTitle.textContent = `${lessonNo}차시 학습 확인 테스트`;
+    testFrame.style.height = '760px';
+    testFrame.src = `pages/${testId}.html`;
+    testWrap.classList.add('open');
 
-    window.open(
-      `pages/${testId}.html`,
-      `${testId}Popup`,
-      `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`
-    );
+    requestAnimationFrame(() => {
+      testWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
-  openTestBtn.addEventListener('click', openCurrentTestPopup);
+  openTestBtn.addEventListener('click', openCurrentTestFrame);
+  closeTestFrameBtn.addEventListener('click', closeTestFrame);
+
+  // iframe 안의 페이지가 실제로 로드된 뒤 보내는 page 정보를 기준으로
+  // 현재 차시와 테스트 버튼도 함께 동기화한다.
+  window.addEventListener('message', (event) => {
+    const data = event.data || {};
+    if (data.page && testMap[data.page]) {
+      currentPageId = data.page;
+      updateTestButton();
+    }
+    if (data.type === 'setTestHeight' && event.source === testFrame.contentWindow) {
+      const requestedHeight = Number(data.height);
+      if (Number.isFinite(requestedHeight)) {
+        // 테스트 내용에 맞춰 높이를 조절하되 무한 확대를 방지한다.
+        // 최대 높이를 넘는 내용은 iframe 내부 스크롤로 확인한다.
+        const nextHeight = Math.min(2600, Math.max(760, Math.ceil(requestedHeight)));
+        const currentHeight = parseInt(testFrame.style.height, 10) || 760;
+        if (Math.abs(currentHeight - nextHeight) > 1) {
+          testFrame.style.height = `${nextHeight}px`;
+        }
+      }
+    }
+    if (data.type === 'closeTest') {
+      closeTestFrame();
+    }
+  });
 
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -126,6 +210,7 @@
       if (pageId) {
         currentPageId = pageId;
         updateTestButton();
+        closeTestFrame();
       }
     });
   });

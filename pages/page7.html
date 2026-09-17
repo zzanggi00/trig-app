@@ -19,10 +19,22 @@
 </head>
 <body class="lower-page">
   <div class="inner">
-    <section class="hero-card">
-      <h1>7. 삼각함수의 그래프(탄젠트)</h1>
-      <p>단위원 위의 점 <strong>P</strong>를 움직이며 <strong>tan θ</strong>의 값을 확인하고, 그 값이 오른쪽 그래프에 어떻게 나타나는지 살펴봅니다.</p>
-      <p>탄젠트는 <strong>tan θ = y / x</strong> 이므로, <strong>x = 0</strong>인 각에서는 값이 정의되지 않습니다. 점근선 근처처럼 값이 너무 커지는 곳은 그림에서 생략할 수 있습니다.</p>
+    <section class="hero-card lesson-hero-card">
+      <div class="lesson-header-grid">
+        <div class="lesson-heading-block">
+          <h1>7. 삼각함수의 그래프(탄젠트)</h1>
+          <p class="achievement-standard"><strong>성취기준</strong> : 사인함수, 코사인함수, 탄젠트함수의 그래프를 그리고, 그 성질을 설명할 수 있다.</p>
+        </div>
+        <div class="mission-box">
+          <strong class="mission-label">탐구미션</strong>
+          <ol class="mission-list">
+            <li>θ가 π/2, 3π/2 등에 가까워질수록 tan θ의 값과 그래프는 어떻게 변하는가?</li>
+            <li>탄젠트함수의 그래프는 얼마만큼 이동하면 같은 모양이 반복되는가?</li>
+            <li>탄젠트함수가 정의되지 않는 곳에는 어떤 규칙이 있는가?</li>
+            <li>사인·코사인함수와 비교했을 때 탄젠트함수의 그래프가 가지는 가장 큰 차이점은 무엇인가?</li>
+          </ol>
+        </div>
+      </div>
     </section>
 
     <section class="layout wide-left">
@@ -48,6 +60,9 @@
           <button data-angle="270">3π/2</button>
           <button data-angle="360">2π</button>
           <button data-angle="540">3π</button>
+          <button id="playBtn" type="button" class="play-btn">▶ 재생</button>
+            <button id="pauseBtn" type="button" class="pause-btn" disabled>⏸ 일시정지</button>
+            <button id="resetBtn" type="button" class="reset-animation-btn">↺ 초기화</button>
         </div>
 
         <div class="meta-card" id="stateBox"></div>
@@ -94,6 +109,11 @@
     const circleCanvas = document.getElementById('circleCanvas');
     const graphCanvas = document.getElementById('graphCanvas');
     const clearBtn = document.getElementById('clearBtn');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    let animationId = null;
+    let lastAnimationTime = 0;
 
     const stateBox = document.getElementById('stateBox');
     const radText = document.getElementById('radText');
@@ -512,6 +532,55 @@
       setAngle(Math.round(nextDeg), true);
     }
 
+    function stopAnimation() {
+      if (animationId !== null) cancelAnimationFrame(animationId);
+      animationId = null;
+      playBtn.classList.remove('running');
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+
+    function animationStep(time) {
+      if (animationId === null) return;
+      if (time - lastAnimationTime >= 22) {
+        const next = state.angleDeg + 2;
+        if (next > 540) {
+          setAngle(540, true);
+          stopAnimation();
+          return;
+        }
+        setAngle(next, true);
+        lastAnimationTime = time;
+      }
+      if (animationId !== null) animationId = requestAnimationFrame(animationStep);
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (animationId !== null) return;
+      if (state.angleDeg >= 540 || state.tracePoints.length <= 1) {
+        state.tracePoints = [];
+        state.angleDeg = -180;
+        addTracePoint();
+        render();
+      }
+      playBtn.classList.add('running');
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      lastAnimationTime = 0;
+      animationId = requestAnimationFrame(animationStep);
+    });
+
+    pauseBtn.addEventListener('click', stopAnimation);
+
+    resetBtn.addEventListener('click', () => {
+      stopAnimation();
+      state.angleDeg = 0;
+      state.dragging = false;
+      state.tracePoints = [];
+      addTracePoint();
+      render();
+    });
+
     function render() {
       updateOutputs();
       drawCircleCanvas();
@@ -520,15 +589,17 @@
     }
 
     document.querySelectorAll('[data-angle]').forEach(btn => {
-      btn.addEventListener('click', () => setAngle(Number(btn.dataset.angle), true));
+      btn.addEventListener('click', () => { stopAnimation(); setAngle(Number(btn.dataset.angle), true); });
     });
 
     clearBtn.addEventListener('click', () => {
+      stopAnimation();
       state.tracePoints = [];
       render();
     });
 
     circleCanvas.addEventListener('mousedown', event => {
+      stopAnimation();
       state.dragging = true;
       updateFromCirclePointer(event);
     });

@@ -8,8 +8,22 @@
 </head>
 <body class="lower-page">
   <div class="inner">
-    <section class="hero-card">
-      <h1>2. 호도법과 육십분법</h1>
+    <section class="hero-card lesson-hero-card">
+      <div class="lesson-header-grid">
+        <div class="lesson-heading-block">
+          <h1>2. 호도법과 육십분법</h1>
+          <p class="achievement-standard"><strong>성취기준</strong> : 일반각과 호도법의 뜻을 알고, 그 관계를 설명할 수 있다.</p>
+        </div>
+        <div class="mission-box">
+          <strong class="mission-label">탐구미션</strong>
+          <ol class="mission-list">
+            <li>180°, 90°, 60°, 45°, 30°는 각각 몇 rad으로 나타낼 수 있는가? 어떤 규칙이 있는가?</li>
+            <li>1 rad은 원에서 어떤 크기의 각을 의미하는가?</li>
+            <li>각을 육십분법에서 호도법으로 바꾸려면 어떤 계산을 해야 하는가?</li>
+            <li>π rad과 180°의 관계를 이용하면 두 표현을 어떻게 서로 변환할 수 있는가?</li>
+          </ol>
+        </div>
+      </div>
     </section>
 
     <section class="layout side-panel">
@@ -17,6 +31,11 @@
         <h2>조작 패널</h2>
         <div class="subtext">호도법과 육십분법을 서로 바꾸어 보세요. 오른쪽에서는 1라디안의 정의와 주요각의 표현을 확인할 수 있습니다.</div>
         <div id="leftPanel"></div>
+        <div class="small-buttons" style="margin-top:14px;">
+          <button id="playBtn" type="button" class="play-btn">▶ 재생</button>
+          <button id="pauseBtn" type="button" class="pause-btn" disabled>⏸ 일시정지</button>
+          <button id="resetBtn" type="button" class="reset-animation-btn">↺ 초기화</button>
+        </div>
       </aside>
 
       <main class="viewer">
@@ -36,6 +55,11 @@
     const state = { radianInput: 'π/3', degreeInput: '60' };
     const leftPanel = document.getElementById('leftPanel');
     const rightView = document.getElementById('rightView');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    let animationTimer = null;
+    let animationIndex = 0;
 
     function renderLeft() {
       const radValue = C.parseRadianInput(state.radianInput);
@@ -75,10 +99,10 @@
         </div>
       `;
 
-      document.getElementById('radianInput').addEventListener('input', e => { state.radianInput = e.target.value; render(); });
-      document.getElementById('degreeInput').addEventListener('input', e => { state.degreeInput = e.target.value; render(); });
-      document.querySelectorAll('[data-rad]').forEach(btn => btn.addEventListener('click', () => { state.radianInput = btn.dataset.rad; render(); }));
-      document.querySelectorAll('[data-deg]').forEach(btn => btn.addEventListener('click', () => { state.degreeInput = btn.dataset.deg; render(); }));
+      document.getElementById('radianInput').addEventListener('input', e => { stopAnimation(); state.radianInput = e.target.value; render(); });
+      document.getElementById('degreeInput').addEventListener('input', e => { stopAnimation(); state.degreeInput = e.target.value; render(); });
+      document.querySelectorAll('[data-rad]').forEach(btn => btn.addEventListener('click', () => { stopAnimation(); state.radianInput = btn.dataset.rad; render(); }));
+      document.querySelectorAll('[data-deg]').forEach(btn => btn.addEventListener('click', () => { stopAnimation(); state.degreeInput = btn.dataset.deg; render(); }));
     }
 
     function drawRadianDefinition() {
@@ -157,6 +181,24 @@
         ctx.fillStyle = '#334155'; ctx.font = '12px HCR Batang, 함초롱바탕, serif'; ctx.fillText(`${deg}°`, lx, ly - 8);
         ctx.fillStyle = '#7c3aed'; ctx.font = 'bold 13px HCR Batang, 함초롱바탕, serif'; ctx.fillText(rad, lx, ly + 10);
       });
+
+      const activeDeg = Number(state.degreeInput);
+      if (Number.isFinite(activeDeg)) {
+        const theta = C.toRad(C.normalizeDeg(activeDeg));
+        const px = cx + r * Math.cos(-theta);
+        const py = cy + r * Math.sin(-theta);
+        ctx.strokeStyle = '#7c3aed';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.arc(px, py, 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       ctx.textAlign = 'start';
     }
 
@@ -172,6 +214,42 @@
       drawRadianDefinition();
       drawUnitCircle();
     }
+
+    function stopAnimation() {
+      if (animationTimer !== null) clearInterval(animationTimer);
+      animationTimer = null;
+      playBtn.classList.remove('running');
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+
+    function showNextMajorAngle() {
+      const angles = getAngles();
+      const [deg, rad] = angles[animationIndex % angles.length];
+      state.degreeInput = String(deg);
+      state.radianInput = rad;
+      animationIndex += 1;
+      render();
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (animationTimer !== null) return;
+      playBtn.classList.add('running');
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      showNextMajorAngle();
+      animationTimer = setInterval(showNextMajorAngle, 700);
+    });
+
+    pauseBtn.addEventListener('click', stopAnimation);
+
+    resetBtn.addEventListener('click', () => {
+      stopAnimation();
+      animationIndex = 0;
+      state.radianInput = 'π/3';
+      state.degreeInput = '60';
+      render();
+    });
 
     function render() {
       renderLeft();

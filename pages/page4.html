@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>page4 - 삼각함수 간의 관계</title>
-  <style>
+  <title>4차시 삼각함수 간의 관계</title>
+
+  <link rel="stylesheet" href="../assets/common.css" />
+ 
+ <style>
     :root {
       --card: #ffffff;
       --line: #dbe4f0;
@@ -25,7 +28,7 @@
     }
 
     .inner {
-      padding: 18px;
+      padding: 0;
     }
 
     .hero {
@@ -249,13 +252,26 @@
       .info-grid { grid-template-columns: 1fr; }
     }
   </style>
+
 </head>
-<body>
+<body class="lower-page">
   <div class="inner">
-    <section class="hero">
-      <h1>4. 삼각함수 간의 관계</h1>
-      <p>단위원 위의 점 <strong>P(x, y)</strong>를 이용하여 <strong>x = cos θ</strong>, <strong>y = sin θ</strong>를 확인하고, 이를 바탕으로 <strong>tan θ = sin θ / cos θ</strong>를 이해할 수 있습니다.</p>
-      <p>또한 단위원 위의 점이라는 사실로부터 <strong>x² + y² = 1</strong>, 즉 <strong>sin²θ + cos²θ = 1</strong>임을 시각적으로 확인할 수 있습니다.</p>
+    <section class="hero-card lesson-hero-card">
+      <div class="lesson-header-grid">
+        <div class="lesson-heading-block">
+          <h1>4. 삼각함수 간의 관계</h1>
+          <p class="achievement-standard"><strong>성취기준</strong> : 삼각함수의 개념을 이해한다.</p>
+        </div>
+        <div class="mission-box">
+          <strong class="mission-label">탐구미션</strong>
+          <ol class="mission-list">
+            <li>각도를 바꾸어도 sin²θ + cos²θ의 값은 항상 어떻게 되는가? 그 이유는 무엇인가?</li>
+            <li>tan θ와 sin θ, cos θ 사이에는 어떤 관계가 있는가?</li>
+            <li>단위원 위의 점 P(x, y)의 좌표와 cos θ, sin θ는 어떤 관계가 있는가?</li>
+            <li>cos θ = 0인 경우 tan θ에는 어떤 일이 생기는가?</li>
+          </ol>
+        </div>
+      </div>
     </section>
 
     <section class="layout">
@@ -276,6 +292,9 @@
           <button data-angle="120">120°</button>
           <button data-angle="225">225°</button>
           <button data-angle="330">330°</button>
+          <button id="playBtn" type="button" class="play-btn">▶ 재생</button>
+          <button id="pauseBtn" type="button" class="pause-btn" disabled>⏸ 일시정지</button>
+          <button id="resetBtn" type="button" class="reset-animation-btn">↺ 초기화</button>
         </div>
 
         <div class="canvas-wrap">
@@ -379,6 +398,11 @@
     const angleInput = document.getElementById('angleInput');
     const angleSlider = document.getElementById('angleSlider');
     const angleChip = document.getElementById('angleChip');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    let animationId = null;
+    let lastAnimationTime = 0;
 
     const thetaText = document.getElementById('thetaText');
     const pointText = document.getElementById('pointText');
@@ -653,8 +677,12 @@
       ctx.stroke();
 
       ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 18px Malgun Gothic';
-      ctx.fillText('P', px + 10, py - 8);
+      ctx.font = 'bold 16px Malgun Gothic';
+      const pointLabel = `P(${formatNum(x)}, ${formatNum(y)})`;
+      const labelWidth = ctx.measureText(pointLabel).width;
+      const labelX = px >= cx ? px + 10 : px - labelWidth - 10;
+      const labelY = py <= cy ? py - 10 : py + 24;
+      ctx.fillText(pointLabel, labelX, labelY);
 
       ctx.font = 'italic 18px Georgia';
       ctx.fillText('1', cx + pixelR * 0.48 * Math.cos(-theta) + 8, cy + pixelR * 0.48 * Math.sin(-theta) - 8);
@@ -708,6 +736,43 @@
       }, '*');
     }
 
+    function stopAnimation() {
+      if (animationId !== null) cancelAnimationFrame(animationId);
+      animationId = null;
+      playBtn.classList.remove('running');
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+
+    function animationStep(time) {
+      if (animationId === null) return;
+      if (time - lastAnimationTime >= 24) {
+        state.angleDeg += 2;
+        if (state.angleDeg >= 360) state.angleDeg -= 360;
+        renderPage4();
+        lastAnimationTime = time;
+      }
+      animationId = requestAnimationFrame(animationStep);
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (animationId !== null) return;
+      playBtn.classList.add('running');
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      lastAnimationTime = 0;
+      animationId = requestAnimationFrame(animationStep);
+    });
+
+    pauseBtn.addEventListener('click', stopAnimation);
+
+    resetBtn.addEventListener('click', () => {
+      stopAnimation();
+      state.angleDeg = 45;
+      state.dragging = false;
+      renderPage4();
+    });
+
     function renderPage4() {
       updateOutputs();
       drawMainCanvas();
@@ -716,24 +781,28 @@
     }
 
     angleInput.addEventListener('input', (e) => {
+      stopAnimation();
       const raw = e.target.value;
       state.angleDeg = (raw === '' || raw === '-') ? 0 : Number(raw);
       renderPage4();
     });
 
     angleSlider.addEventListener('input', (e) => {
+      stopAnimation();
       state.angleDeg = Number(e.target.value);
       renderPage4();
     });
 
     document.querySelectorAll('[data-angle]').forEach((btn) => {
       btn.addEventListener('click', () => {
+        stopAnimation();
         state.angleDeg = Number(btn.dataset.angle);
         renderPage4();
       });
     });
 
     mainCanvas.addEventListener('mousedown', (event) => {
+      stopAnimation();
       state.dragging = true;
       updateFromPointer(event);
     });

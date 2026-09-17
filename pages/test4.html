@@ -202,6 +202,17 @@
       font-family: "Consolas", "Courier New", monospace;
       font-size: 0.96em;
     }
+  
+    .review-feedback {
+      margin-top: 9px;
+      padding: 9px 11px;
+      border-radius: 10px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      line-height: 1.55;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -240,10 +251,10 @@
       <div id="checkList" class="check-list"></div>
       <div class="modal-btn-row">
         <button id="retryBtn" class="primary-btn">다시 풀기</button>
-        <button id="closeBtn">그만하고 창 닫기</button>
+        <button id="closeBtn">테스트 닫기</button>
       </div>
       <div id="closeNote" class="close-note">
-        브라우저 설정에 따라 창이 자동으로 닫히지 않을 수 있습니다. 그런 경우 창을 직접 닫아 주세요.
+        이 테스트를 단독 창으로 연 경우 브라우저 설정에 따라 자동으로 닫히지 않을 수 있습니다. 그런 경우 창을 직접 닫아 주세요.
       </div>
     </div>
   </div>
@@ -252,6 +263,10 @@
     const state = {
       questions: []
     };
+    const reviewFeedback = [
+      '탐구미션 1과 3을 다시 확인해 보세요. 단위원에서 P(cos θ, sin θ)가 x² + y² = 1을 만족한다는 점을 이용해 보세요.',
+      '탐구미션 2를 다시 확인해 보세요. tan θ를 sin θ와 cos θ의 비로 나타내는 관계를 다시 확인해 보세요.'
+    ];
 
     const quizArea = document.getElementById('quizArea');
     const resultBox = document.getElementById('resultBox');
@@ -373,7 +388,7 @@
     function showModal(items, passed) {
       modalTitle.textContent = passed ? '통과했습니다' : '다시 풀어야 합니다';
       modalSummary.innerHTML = passed
-        ? '2문제를 모두 맞혔습니다. 결과를 확인한 뒤 창을 닫거나 다시 풀 수 있습니다.'
+        ? '2문제를 모두 맞혔습니다. 결과를 확인한 뒤 테스트를 닫거나 다시 풀 수 있습니다.'
         : '문제별 결과를 확인해 보세요. 2문제를 모두 맞혀야 통과입니다.';
 
       checkList.innerHTML = items.map(item => {
@@ -419,7 +434,7 @@
           correct,
           detail: correct
             ? `선택한 답: <strong>${userText}</strong>`
-            : `선택한 답: <strong>${userText}</strong><br>정답: <strong>${correctText}</strong>`
+            : `선택한 답: <strong>${userText}</strong><br>정답: <strong>${correctText}</strong><div class="review-feedback"><strong>다시 확인할 내용</strong><br>${reviewFeedback[i]}</div>`
         });
       }
 
@@ -449,18 +464,53 @@
     }
 
     function closeWindowSafely() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'closeTest' }, '*');
+        return;
+      }
       window.close();
-
       setTimeout(() => {
-        if (!window.closed) {
-          closeNote.style.display = 'block';
-        }
-      }, 300);
+        if (!window.closed) closeNote.style.display = 'block';
+      }, 250);
     }
 
     newQuizBtn.addEventListener('click', buildQuiz);
     gradeBtn.addEventListener('click', gradeQuiz);
     retryBtn.addEventListener('click', retryQuiz);
+    let heightPostQueued = false;
+    let lastPostedHeight = 0;
+
+    function getNaturalContentHeight() {
+      const inner = document.querySelector('.inner');
+      if (!inner) return 760;
+
+      // iframe 자체의 현재 높이가 아니라 실제 테스트 콘텐츠의 끝 위치를 측정한다.
+      // 이렇게 하면 부모가 iframe 높이를 바꿔도 측정값이 다시 커지는 순환이 생기지 않는다.
+      const rect = inner.getBoundingClientRect();
+      return Math.max(760, Math.ceil(rect.bottom + window.scrollY + 20));
+    }
+
+    function postTestHeight() {
+      if (heightPostQueued) return;
+      heightPostQueued = true;
+      requestAnimationFrame(() => {
+        heightPostQueued = false;
+        const height = getNaturalContentHeight();
+        if (Math.abs(height - lastPostedHeight) < 2) return;
+        lastPostedHeight = height;
+
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'setTestHeight', height }, '*');
+        }
+      });
+    }
+
+    window.addEventListener('load', postTestHeight);
+    window.addEventListener('resize', postTestHeight);
+    new MutationObserver(postTestHeight).observe(document.body, {
+      subtree: true, childList: true, characterData: true, attributes: true
+    });
+
     closeBtn.addEventListener('click', closeWindowSafely);
 
     window.addEventListener('load', buildQuiz);

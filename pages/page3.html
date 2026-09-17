@@ -8,9 +8,22 @@
 </head>
 <body class="lower-page">
   <div class="inner">
-    <section class="hero-card">
-      <h1>3. 삼각함수의 정의</h1>
-      <p>반지름이 <strong>r</strong>인 원 위의 점 <strong>P(x, y)</strong>를 이용하여 sin, cos, tan의 정의를 확인합니다.</p>
+    <section class="hero-card lesson-hero-card">
+      <div class="lesson-header-grid">
+        <div class="lesson-heading-block">
+          <h1>3. 삼각함수의 정의</h1>
+          <p class="achievement-standard"><strong>성취기준</strong> : 삼각함수의 개념을 이해한다.</p>
+        </div>
+        <div class="mission-box">
+          <strong class="mission-label">탐구미션</strong>
+          <ol class="mission-list">
+            <li>점 P의 위치가 변할 때 x, y의 값과 sin θ, cos θ, tan θ는 어떤 관계가 있는가?</li>
+            <li>점 P가 각 사분면에 있을 때 sin, cos, tan의 부호는 어떻게 달라지는가?</li>
+            <li>θ가 30°, 45°, 60°일 때 sin, cos, tan의 값을 비교하면 어떤 특징을 발견할 수 있는가?</li>
+            <li>tan θ = y/x에서 x가 0에 가까워지면 tan θ의 값은 어떻게 변하는가?</li>
+          </ol>
+        </div>
+      </div>
     </section>
 
     <section class="layout side-panel">
@@ -32,6 +45,9 @@
           <div class="small-buttons">
             <button data-angle="30">30°</button><button data-angle="45">45°</button><button data-angle="60">60°</button>
             <button data-angle="120">120°</button><button data-angle="225">225°</button><button data-angle="330">330°</button>
+            <button id="playBtn" type="button" class="play-btn">▶ 재생</button>
+            <button id="pauseBtn" type="button" class="pause-btn" disabled>⏸ 일시정지</button>
+            <button id="resetBtn" type="button" class="reset-animation-btn">↺ 초기화</button>
           </div>
         </div>
 
@@ -82,6 +98,11 @@
     const state = { angleDeg: 45, radius: 5, dragging: false };
     const angleInput = document.getElementById('angleInput');
     const angleSlider = document.getElementById('angleSlider');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    let animationId = null;
+    let lastAnimationTime = 0;
     const angleChip = document.getElementById('angleChip');
     const stateBox = document.getElementById('stateBox');
     const thetaText = document.getElementById('thetaText');
@@ -192,6 +213,44 @@
       render();
     }
 
+    function stopAnimation() {
+      if (animationId !== null) cancelAnimationFrame(animationId);
+      animationId = null;
+      playBtn.classList.remove('running');
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+
+    function animationStep(time) {
+      if (animationId === null) return;
+      if (time - lastAnimationTime >= 24) {
+        state.angleDeg += 2;
+        if (state.angleDeg >= 360) state.angleDeg -= 360;
+        render();
+        lastAnimationTime = time;
+      }
+      animationId = requestAnimationFrame(animationStep);
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (animationId !== null) return;
+      playBtn.classList.add('running');
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      lastAnimationTime = 0;
+      animationId = requestAnimationFrame(animationStep);
+    });
+
+    pauseBtn.addEventListener('click', stopAnimation);
+
+    resetBtn.addEventListener('click', () => {
+      stopAnimation();
+      state.angleDeg = 45;
+      state.radius = 5;
+      state.dragging = false;
+      render();
+    });
+
     function render() {
       updateOutputs();
       drawMainCanvas();
@@ -199,10 +258,17 @@
       C.postHeight('page3');
     }
 
-    angleInput.addEventListener('input', e => { const raw = e.target.value; state.angleDeg = (raw === '' || raw === '-') ? 0 : Number(raw); render(); });
-    angleSlider.addEventListener('input', e => { state.angleDeg = Number(e.target.value); render(); });
-    document.querySelectorAll('[data-angle]').forEach(btn => btn.addEventListener('click', () => { state.angleDeg = Number(btn.dataset.angle); render(); }));
-    mainCanvas.addEventListener('mousedown', event => { state.dragging = true; updateFromPointer(event); });
+    angleInput.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      stopAnimation();
+      const value = Number(e.target.value);
+      if (Number.isFinite(value)) state.angleDeg = value;
+      render();
+    });
+    angleSlider.addEventListener('input', e => { stopAnimation(); state.angleDeg = Number(e.target.value); render(); });
+    document.querySelectorAll('[data-angle]').forEach(btn => btn.addEventListener('click', () => { stopAnimation(); state.angleDeg = Number(btn.dataset.angle); render(); }));
+    mainCanvas.addEventListener('mousedown', event => { stopAnimation(); state.dragging = true; updateFromPointer(event); });
     window.addEventListener('mousemove', event => { if (state.dragging) updateFromPointer(event); });
     window.addEventListener('mouseup', () => { state.dragging = false; });
     mainCanvas.addEventListener('mouseleave', () => { state.dragging = false; });
