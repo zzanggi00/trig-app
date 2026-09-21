@@ -74,7 +74,7 @@
           <p class="subtext compact">x축은 θ, y축은 tan θ 입니다. 값이 정의되지 않는 곳과 너무 큰 곳은 그리지 않습니다.</p>
         </div>
 
-        <div class="canvas-wrap fixed-520">
+        <div class="canvas-wrap fixed-620 tangent-graph-wrap">
           <canvas id="graphCanvas"></canvas>
         </div>
 
@@ -122,11 +122,12 @@
 
     const X_MIN = -Math.PI;
     const X_MAX = 3 * Math.PI;
-    const Y_MIN = -5;
-    const Y_MAX = 5;
+    // 오른쪽 그래프의 세로 스케일을 왼쪽 탄젠트 선분과 가깝게 맞춘다.
+    const Y_MIN = -2.5;
+    const Y_MAX = 2.5;
 
     const LEFT_TAN_DRAW_LIMIT = 2.1;
-    const RIGHT_POINT_DRAW_LIMIT = 4.8;
+    const RIGHT_POINT_DRAW_LIMIT = 2.4;
 
     function getValues() {
       const theta = C.toRad(state.angleDeg);
@@ -375,7 +376,7 @@
         ctx.stroke();
       });
 
-      [-4, -2, 0, 2, 4].forEach(v => {
+      [-2, -1, 0, 1, 2].forEach(v => {
         const py = yToPx(v, top, gh);
         ctx.beginPath();
         ctx.moveTo(left, py);
@@ -422,7 +423,7 @@
       ctx.fillText('2π', xToPx(2 * Math.PI, left, gw) - 10, yToPx(0, top, gh) + 28);
       ctx.fillText('3π', xToPx(3 * Math.PI, left, gw) - 10, yToPx(0, top, gh) + 28);
 
-      [-4, -2, 2, 4].forEach(v => {
+      [-2, -1, 1, 2].forEach(v => {
         ctx.fillText(String(v), xToPx(0, left, gw) + 10, yToPx(v, top, gh) + 6);
       });
 
@@ -472,6 +473,8 @@
         const cpx = xToPx(theta, left, gw);
         const cpy = yToPx(tan, top, gh);
 
+        const zeroY = yToPx(0, top, gh);
+
         ctx.strokeStyle = '#94a3b8';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([6, 5]);
@@ -480,13 +483,21 @@
         ctx.moveTo(0, cpy);
         ctx.lineTo(cpx, cpy);
         ctx.stroke();
+        ctx.setLineDash([]);
 
+        // 현재 tan 값의 크기를 초록색 선분으로 표시한다.
+        // 그래프의 세로 범위를 조정해 왼쪽 탄젠트 선분과 길이 차이가 크지 않게 했다.
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(cpx, yToPx(0, top, gh));
+        ctx.moveTo(cpx, zeroY);
         ctx.lineTo(cpx, cpy);
         ctx.stroke();
 
-        ctx.setLineDash([]);
+        ctx.fillStyle = '#059669';
+        ctx.font = 'bold 14px HCR Batang, 함초롱바탕, serif';
+        const labelOffset = tan >= 0 ? -10 : 20;
+        ctx.fillText('tan θ', cpx + 8, (zeroY + cpy) / 2 + labelOffset);
 
         ctx.fillStyle = '#dc2626';
         ctx.beginPath();

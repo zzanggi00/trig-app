@@ -268,10 +268,8 @@
       const left = 80;
       const right = 30;
 
-      // y축을 조금 더 크게
-      const top = 38;
-      const bottom = 38;
-      const plotHeight = h - top - bottom;
+      // 왼쪽 단위원과 같은 세로 스케일을 사용해 cos θ의 길이가 같은 크기로 보이게 한다.
+      const { top, bottom, plotHeight } = C.getSharedVerticalGeometry(h);
       const gw = w - left - right;
 
       ctx.strokeStyle = '#e5e7eb';
@@ -345,6 +343,8 @@
         const cpx = xToPx(theta, left, gw);
         const cpy = yToPx(cosValue, top, plotHeight);
 
+        const zeroY = yToPx(0, top, plotHeight);
+
         ctx.strokeStyle = '#94a3b8';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([6, 5]);
@@ -352,12 +352,21 @@
         ctx.moveTo(0, cpy);
         ctx.lineTo(cpx, cpy);
         ctx.stroke();
+        ctx.setLineDash([]);
 
+        // 현재 cos 값의 크기를 초록색 선분으로 표시한다.
+        // 왼쪽 단위원의 초록색 cos 선분과 같은 스케일이므로 길이가 같게 보인다.
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(cpx, yToPx(0, top, plotHeight));
+        ctx.moveTo(cpx, zeroY);
         ctx.lineTo(cpx, cpy);
         ctx.stroke();
-        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#059669';
+        ctx.font = 'bold 14px HCR Batang, 함초롱바탕, serif';
+        const labelOffset = cosValue >= 0 ? -10 : 20;
+        ctx.fillText('cos θ', cpx + 8, (zeroY + cpy) / 2 + labelOffset);
 
         ctx.fillStyle = '#dc2626';
         ctx.beginPath();
